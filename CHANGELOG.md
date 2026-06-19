@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.4.x
+
+### New Features
+
+- **MEGA download support** — Download funscripts and videos directly from MEGA links. Includes a folder picker so you can choose a destination inside your MEGA account before downloading.
+- **Credits section** — Added a Credits page to Settings showing contributors, key dependencies, and a legal disclaimer.
+- **MIT license** — ScriptStash is now open source under the MIT license.
+
+### Fixes
+
+- CI workflow now correctly triggers on pushes to `main`.
+- Expanded disclaimer to cover content legality and jurisdiction notice.
+
+---
+
 ## 2.3.x — Download improvements
 
 ### Downloads tab
