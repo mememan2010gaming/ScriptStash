@@ -907,7 +907,10 @@ export default function SettingsView({ activeSection, onSectionChange }) {
             </div>
 
             <SectionLabel>Built with</SectionLabel>
-            <div className="glass" style={{ borderRadius: 14, padding: '10px 18px', marginBottom: 28 }}>
+            <div
+              className="glass"
+              style={{ borderRadius: 14, padding: '10px 18px', marginBottom: 28 }}
+            >
               {[
                 { name: 'Electron', license: 'MIT' },
                 { name: 'React', license: 'MIT' },
@@ -936,16 +939,24 @@ export default function SettingsView({ activeSection, onSectionChange }) {
             <SectionLabel>Disclaimer</SectionLabel>
             <div
               className="glass"
-              style={{ borderRadius: 14, padding: '14px 18px', marginBottom: 28, fontSize: 13, opacity: 0.6, lineHeight: 1.6 }}
+              style={{
+                borderRadius: 14,
+                padding: '14px 18px',
+                marginBottom: 28,
+                fontSize: 13,
+                opacity: 0.6,
+                lineHeight: 1.6,
+              }}
             >
               ScriptStash is an independent third-party application and is not affiliated with,
-              endorsed by, or associated with EroScripts or Discourse. Use of this app is subject
-              to the terms of service of the communities you access through it.
-              <br /><br />
+              endorsed by, or associated with EroScripts or Discourse. Use of this app is subject to
+              the terms of service of the communities you access through it.
+              <br />
+              <br />
               ScriptStash does not host, store, or distribute any content. All content is fetched
               directly from third-party sources. You are solely responsible for ensuring that your
-              use of this application complies with the laws of your country or jurisdiction.
-              The developers of ScriptStash accept no liability for content accessed through this app.
+              use of this application complies with the laws of your country or jurisdiction. The
+              developers of ScriptStash accept no liability for content accessed through this app.
             </div>
           </div>
         )}

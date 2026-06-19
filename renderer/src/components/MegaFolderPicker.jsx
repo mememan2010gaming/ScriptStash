@@ -76,7 +76,9 @@ export default function MegaFolderPicker({ folderName, files, onConfirm, onCance
         >
           <div>
             <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>MEGA Folder</div>
-            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>{folderName}</div>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+              {folderName}
+            </div>
           </div>
           <button
             onClick={onCancel}
@@ -176,7 +178,8 @@ export default function MegaFolderPicker({ folderName, files, onConfirm, onCance
             Cancel
           </Button>
           <Button variant="primary" size="sm" disabled={noneSelected} onClick={handleConfirm}>
-            Download{selected.size > 0 ? ` ${selected.size} file${selected.size > 1 ? 's' : ''}` : ''}
+            Download
+            {selected.size > 0 ? ` ${selected.size} file${selected.size > 1 ? 's' : ''}` : ''}
           </Button>
         </div>
       </div>

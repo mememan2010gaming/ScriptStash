@@ -16,8 +16,6 @@ jest.mock('../main/store/config', () => ({
   set: jest.fn(),
 }))
 
-const mockDownloadStream = jest.fn()
-const mockLoadAttributes = jest.fn()
 const mockFromURL = jest.fn()
 
 jest.mock('megajs', () => ({
@@ -152,16 +150,9 @@ describe('downloadFromMega', () => {
     })
 
     await expect(
-      service.downloadFromMega(
-        'https://mega.nz/file/abc#key',
-        'file.mp4',
-        mockWindow,
-        'test-id-3'
-      )
+      service.downloadFromMega('https://mega.nz/file/abc#key', 'file.mp4', mockWindow, 'test-id-3')
     ).rejects.toThrow('MEGA decryption failed')
 
-    expect(fs.unlinkSync).toHaveBeenCalledWith(
-      path.join('/tmp/downloads', 'file.mp4')
-    )
+    expect(fs.unlinkSync).toHaveBeenCalledWith(path.join('/tmp/downloads', 'file.mp4'))
   })
 })

@@ -28,12 +28,17 @@ function setupDownloadHandlers() {
       }
 
       const flatten = n =>
-        n.children ? n.children.flatMap(c => flatten(c)) : [{ name: n.name, size: n.size, nodeId: n.nodeId }]
+        n.children
+          ? n.children.flatMap(c => flatten(c))
+          : [{ name: n.name, size: n.size, nodeId: n.nodeId }]
       const files = flatten(root)
 
       if (files.length <= 1) {
         const f = files[0] || {}
-        return { success: true, data: { isSingleFile: true, filename: f.name, size: f.size, nodeId: f.nodeId } }
+        return {
+          success: true,
+          data: { isSingleFile: true, filename: f.name, size: f.size, nodeId: f.nodeId },
+        }
       }
 
       return {

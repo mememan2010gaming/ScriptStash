@@ -511,12 +511,19 @@ class DownloadService {
           }
 
           const flatten = n =>
-            n.children ? n.children.flatMap(c => flatten(c)) : [{ name: n.name, size: n.size, nodeId: n.nodeId }]
+            n.children
+              ? n.children.flatMap(c => flatten(c))
+              : [{ name: n.name, size: n.size, nodeId: n.nodeId }]
           const files = flatten(root)
 
           if (files.length === 0) return { valid: false, error: 'Empty folder' }
           if (files.length === 1) {
-            return { valid: true, filename: files[0].name, size: files[0].size, nodeId: files[0].nodeId }
+            return {
+              valid: true,
+              filename: files[0].name,
+              size: files[0].size,
+              nodeId: files[0].nodeId,
+            }
           }
           return { valid: true, isMegaFolder: true, folderName: root.name, files }
         } catch (error) {
