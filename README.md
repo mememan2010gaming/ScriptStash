@@ -1,150 +1,144 @@
+<div align="center">
+
+<img src="assets/icons/128x128.png" width="96" alt="ScriptStash" />
+
 # ScriptStash
 
-<p align="center">
-  <a href="#installation">Installation</a> •
-  <a href="#development">Development</a> •
-  <a href="#contributing">Contributing</a> •
-  <a href="#license">License</a>
-</p>
+**A native desktop browser and downloader for EroScripts**
+
+[![Version](https://img.shields.io/badge/version-2.4.4-crimson?style=flat-square)](../../releases)
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-blue?style=flat-square&logo=electron&logoColor=white)](../../releases)
+[![Electron](https://img.shields.io/badge/Electron-28-47848F?style=flat-square&logo=electron&logoColor=white)](https://electronjs.org)
+[![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev)
+[![License](https://img.shields.io/badge/license-Custom-lightgrey?style=flat-square)](LICENSE)
+
+
+[**Download**](../../releases/latest) &nbsp;·&nbsp; [**Report a Bug**](../../issues) &nbsp;·&nbsp; [**Request a Feature**](../../issues)
+
+</div>
 
 ---
 
-## Installation
+## Features
 
-### Pre-built Binaries
+- **Script browser** — Browse free and paid scripts from EroScripts directly in a native app
+- **Download queue** — Concurrent downloads (up to 10 at once) with live progress tracking
+- **Video support** — Download video links via `yt-dlp`, fetched automatically on first run
+- **Ad blocker** — EasyList-based ad filtering applied to the main window
+- **Auto-update** — Checks GitHub releases for new versions on launch
+- **Encrypted storage** — Auth cookies and settings stored locally with encryption
 
-Download the latest release for your platform from the [Releases](../../releases) page:
+---
 
-| Platform | Download                             | Architecture          |
-| -------- | ------------------------------------ | --------------------- |
-| Windows  | `ScriptStash-1.0.0-x64-Setup.exe`    | x64 (Intel/AMD)       |
-| Windows  | `ScriptStash-1.0.0-arm64-Setup.exe`  | ARM64                 |
-| Windows  | `.zip` portable                      | x64 / ARM64           |
-| macOS    | `ScriptStash-darwin-x64-1.0.0.zip`   | Intel (x64)           |
-| macOS    | `ScriptStash-darwin-arm64-1.0.0.zip` | Apple Silicon (ARM64) |
-| Linux    | `ScriptStash-1.0.0-x86_64.AppImage`  | x64 (Universal)       |
-| Linux    | `ScriptStash-1.0.0-arm64.AppImage`   | ARM64 (Universal)     |
-| Android  | `.apk` (experimental)                | ARM64                 |
+## Install
 
-### Building from Source
+Download the latest build from the [**Releases**](../../releases/latest) page.
 
-```bash
-# Clone the repository
+| Platform | File |
+|----------|------|
+| Windows | `ScriptStash-Setup.exe` |
+| macOS (Intel) | `.zip` (x64) |
+| macOS (Apple Silicon) | `.zip` (arm64) |
+| Linux | `.AppImage` |
+| Android (experimental) | `.apk` |
+
+---
+
+## Build from Source
+
+**Requirements:** Node.js 18+, npm 9+
+
+```sh
 git clone https://github.com/mememan2010gaming/ScriptStash.git
-cd scriptstash
-
-# Install dependencies
+cd ScriptStash
 npm install
-
-# Run in development mode
 npm run dev
+```
 
-# Build for your platform
+To build a distributable:
+
+```sh
 npm run make
 ```
 
-## Requirements
-
-- **Node.js** 18.x or higher
-- **npm** 9.x or higher
-- For video downloads: **yt-dlp** (automatically downloaded on first use)
+---
 
 ## Development
 
-### Setup
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Dev server + Electron with hot reload |
+| `npm run build:renderer` | Build the renderer only |
+| `npm run package` | Package the app (no installer) |
+| `npm run make` | Build installers |
+| `npm run lint` | Run ESLint |
+| `npm run lint:fix` | Auto-fix lint issues |
+| `npm run format` | Format with Prettier |
+| `npm test` | Run tests |
+| `npm run test:watch` | Tests in watch mode |
+| `npm run test:coverage` | Coverage report |
 
-```bash
-# Install dependencies
-npm install
+Run a specific test file:
 
-# Start the development server
-npm run dev
+```sh
+npx jest __tests__/api.test.js
 ```
 
-### Available Scripts
+---
 
-| Command                 | Description                                 |
-| ----------------------- | ------------------------------------------- |
-| `npm run dev`           | Start the app in development mode           |
-| `npm run start`         | Alias for dev                               |
-| `npm run lint`          | Run ESLint to check code quality            |
-| `npm run lint:fix`      | Automatically fix linting issues            |
-| `npm run format`        | Format code with Prettier                   |
-| `npm run test`          | Run the test suite                          |
-| `npm run test:watch`    | Run tests in watch mode                     |
-| `npm run test:coverage` | Generate test coverage report               |
-| `npm run make`          | Build distributable packages                |
-| `npm run package`       | Package the app without creating installers |
+## Architecture
 
-### Testing
+ScriptStash is a two-process Electron app. The **main process** (`main/`) handles all API calls, auth, downloads, and IPC. The **renderer** (`renderer/src/`) is a React 18 SPA built with Vite.
 
-```bash
-# Run all tests
-npm test
-
-# Run tests with coverage
-npm run test:coverage
-
-# Run tests in watch mode
-npm run test:watch
 ```
+main/
+  index.js          # Entry point, IPC handler registration
+  window.js         # BrowserWindow setup
+  preload.js        # window.electronAPI surface (contextBridge)
+  store/config.js   # Encrypted electron-store
+  services/
+    api.service.js       # EroScripts Discourse API + caching
+    auth.service.js      # Session cookie management
+    download.service.js  # Queued download manager
+    adblocker.service.js # EasyList ad blocking
+    update.service.js    # GitHub release checks
+  ipc/              # ipcMain.handle registrations
+
+renderer/src/
+  App.jsx           # Root, view routing
+  components/
+    layout/AppShell.jsx
+  hooks/useIpc.js   # window.electronAPI wrapper
+  context/          # Theme, Download, Toast providers
+```
+
+IPC flow: `window.electronAPI.*` (preload) → `ipcRenderer.invoke` → `ipcMain.handle` → service → back to renderer.
+
+---
 
 ## Configuration
 
-ScriptStash stores its configuration locally using encrypted storage. The configuration includes:
+Settings are stored locally with encrypted storage:
 
-- Authentication cookies (encrypted)
-- Download path preferences
-- Download history
-- Application settings
+| OS | Path |
+|----|------|
+| Windows | `%APPDATA%\scriptstash\` |
+| macOS | `~/Library/Application Support/scriptstash/` |
+| Linux | `~/.config/scriptstash/` |
 
-Configuration is stored in:
+Stored data: auth cookies (encrypted), download path, download history, app settings.
 
-- **Windows**: `%APPDATA%/scriptstash/`
-- **macOS**: `~/Library/Application Support/scriptstash/`
-- **Linux**: `~/.config/scriptstash/`
+---
 
 ## Contributing
 
-We welcome contributions! Please read the following guidelines:
+1. Fork the repo and create a branch (`feature/...` or `fix/...`)
+2. Run `npm run lint` and `npm run format` before committing
+3. Add tests for new behavior
+4. Open a PR with a clear description of the change
 
-1. **Fork the repository** - All contributions must come through pull requests to the main repository
-2. **Create a branch** - Use descriptive branch names (`feature/new-feature`, `fix/bug-description`)
-3. **Follow code style** - Run `npm run lint` and `npm run format` before committing
-4. **Write tests** - Add tests for new functionality
-5. **Submit a PR** - Include a clear description of your changes
-
-### Code Style
-
-- We use [ESLint](https://eslint.org/) with Standard config
-- Code is formatted with [Prettier](https://prettier.io/)
-- Use meaningful variable and function names
-- Add comments for complex logic
-
-### Pull Request Process
-
-1. Ensure all tests pass (`npm test`)
-2. Update documentation if needed
-3. Request review from maintainers
-4. Squash commits before merging
+---
 
 ## License
 
-This project is licensed under a custom license. See the [LICENSE](LICENSE) file for details.
-
-## Security
-
-If you discover a security vulnerability, please:
-
-1. **Do NOT** open a public issue
-2. Contact the maintainers privately
-3. Allow time for a fix before disclosure
-
-## Acknowledgments
-
-- [Electron](https://www.electronjs.org/) - Framework
-- [Electron Forge](https://www.electronforge.io/) - Build tooling
-- [yt-dlp](https://github.com/yt-dlp/yt-dlp) - Video downloads
-- All our amazing contributors!
-
----
+See [LICENSE](LICENSE).
