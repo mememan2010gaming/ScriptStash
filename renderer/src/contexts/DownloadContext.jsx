@@ -77,9 +77,9 @@ export function DownloadProvider({ children }) {
   }, [api])
 
   const downloadFile = useCallback(
-    async (url, filename) => {
+    async (url, filename, nodeId = null) => {
       if (!api) return { success: false, error: 'API not available' }
-      return api.downloadFile(url, filename)
+      return api.downloadFile(url, filename, nodeId)
     },
     [api]
   )

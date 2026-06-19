@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import MegaFolderPicker from '../components/MegaFolderPicker'
 import { useDownloads } from '../contexts/DownloadContext'
 import { useToast } from '../contexts/ToastContext'
 import { useIpcListener } from '../hooks/useIpc'
@@ -230,6 +231,7 @@ function RightPanel({ topic }) {
   const [done, setDone] = useState({})
   const [verified, setVerified] = useState({})
   const [failed, setFailed] = useState({})
+  const [megaFolder, setMegaFolder] = useState(null)
 
   const funscripts = topic.downloads?.funscripts || []
   const rankedVideos = topic.downloads?.rankedVideos || topic.downloads?.videos || []
@@ -267,12 +269,28 @@ function RightPanel({ topic }) {
     addToast(`Failed: ${data.error}`, 'error')
   })
 
-  const handleDownload = (url, filename) => {
+  const handleDownload = async (url, filename) => {
     setFailed(prev => {
       const n = { ...prev }
       delete n[url]
       return n
     })
+
+    if (url.toLowerCase().includes('mega.nz')) {
+      const result = await window.electronAPI?.getMegaFolderFiles?.(url)
+      if (result?.success) {
+        const data = result.data
+        if (!data.isSingleFile) {
+          setMegaFolder({ url, folderName: data.folderName, files: data.files })
+          return
+        }
+        const fname = data.filename || filename
+        downloadFile(url, fname, data.nodeId || null)
+        addToast(`Downloading: ${fname}`, 'info')
+        return
+      }
+    }
+
     downloadFile(url, filename)
     addToast(`Downloading: ${filename}`, 'info')
   }
@@ -499,6 +517,21 @@ function RightPanel({ topic }) {
             })}
           </div>
         </Panel>
+      )}
+
+      {megaFolder && (
+        <MegaFolderPicker
+          folderName={megaFolder.folderName}
+          files={megaFolder.files}
+          onConfirm={selected => {
+            setMegaFolder(null)
+            selected.forEach(file => {
+              downloadFile(megaFolder.url, file.name, file.nodeId)
+              addToast(`Downloading: ${file.name}`, 'info')
+            })
+          }}
+          onCancel={() => setMegaFolder(null)}
+        />
       )}
     </div>
   )
