@@ -2,7 +2,7 @@ name: Build and Release
 
 on:
   push:
-    branches: [master]
+    branches: [main]
     tags:
       - 'v*'
     paths:
@@ -16,7 +16,7 @@ on:
       - 'jsconfig.json'
       - '.github/workflows/build.yml'
   pull_request:
-    branches: [master]
+    branches: [main]
     paths:
       - 'main/**'
       - 'renderer/**'
