@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' http://localhost:* ws://localhost:* https://discuss.eroscripts.com https://*.eroscripts.com https://sea1.discourse-cdn.com https://avatars.discourse-cdn.com https://pixeldrain.com https://api.github.com; img-src 'self' data: blob: https://discuss.eroscripts.com https://*.eroscripts.com https://sea1.discourse-cdn.com https://avatars.discourse-cdn.com https://pixeldrain.com; media-src 'self' blob:; font-src 'self' data: https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;" />
+  <title>ScriptStash</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script>
+    /* Apply the saved theme's critical tokens before first paint to avoid
+       a flash (esp. dark -> light for Frost). Full palette is applied by
+       ThemeContext once React mounts; this only covers the visible basics. */
+    (function () {
+      var CRIT = {
+        'rose-noir': { bg: '#0b0709', app: 'radial-gradient(125% 120% at 30% 0%, #1c0f16 0%, #120a0e 55%, #0a070a 100%)', glass: 'rgba(26,16,22,0.42)', text: '#f5ecf0' },
+        ember: { bg: '#0c0704', app: 'radial-gradient(125% 120% at 35% 0%, #23130a 0%, #160d06 55%, #0c0704 100%)', glass: 'rgba(44,30,16,0.44)', text: '#f7ede0' },
+        emerald: { bg: '#050f0b', app: 'radial-gradient(125% 120% at 30% 0%, #0d1f1a 0%, #08130d 55%, #050f0b 100%)', glass: 'rgba(16,40,33,0.44)', text: '#e0f5ee' },
+        'cyan-ice': { bg: '#040d12', app: 'radial-gradient(125% 120% at 30% 0%, #0a1a22 0%, #06121a 55%, #040d12 100%)', glass: 'rgba(14,38,46,0.44)', text: '#e0f4fa' },
+        indigo: { bg: '#060912', app: 'radial-gradient(125% 120% at 30% 0%, #0e1430 0%, #090e1f 55%, #060912 100%)', glass: 'rgba(20,28,56,0.46)', text: '#e6ebff' },
+        sunset: { bg: '#100810', app: 'linear-gradient(155deg, #2a1018 0%, #3a1220 45%, #22101e 100%)', glass: 'rgba(48,26,36,0.46)', text: '#ffe8ec' },
+        carbon: { bg: '#0a0a0b', app: 'radial-gradient(130% 120% at 50% 0%, #161618 0%, #0e0e10 55%, #0a0a0b 100%)', glass: 'rgba(255,255,255,0.045)', text: '#ededee' },
+        frost: { bg: '#e2e7f0', app: 'linear-gradient(160deg, #eef1f7 0%, #e3e8f1 100%)', glass: 'rgba(255,255,255,0.58)', text: '#1a2233' },
+      }
+      var LEGACY = { aurora: 'rose-noir', mesh: 'rose-noir', stealth: 'carbon' }
+      var id
+      try {
+        id = localStorage.getItem('ss_theme')
+        if (!id || !CRIT[id]) {
+          var env = localStorage.getItem('ss_env')
+          id = (env && LEGACY[env]) || 'rose-noir'
+        }
+      } catch (e) {
+        id = 'rose-noir'
+      }
+      var c = CRIT[id] || CRIT['rose-noir']
+      var s = document.documentElement.style
+      s.setProperty('--bg-deep', c.bg)
+      s.setProperty('--app-bg', c.app)
+      s.setProperty('--glass', c.glass)
+      s.setProperty('--text', c.text)
+      document.documentElement.dataset.theme = id
+    })()
+  </script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/index.jsx"></script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="ssWine" x1="72" y1="72" x2="440" y2="440" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#bd4257"></stop>
+      <stop offset="0.52" stop-color="#92223a"></stop>
+      <stop offset="1" stop-color="#5e1326"></stop>
+    </linearGradient>
+    <radialGradient id="ssSheen" cx="30%" cy="-6%" r="92%">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.40"></stop>
+      <stop offset="56%" stop-color="#ffffff" stop-opacity="0"></stop>
+    </radialGradient>
+    <clipPath id="ssSquircle">
+      <rect x="0" y="0" width="512" height="512" rx="133" ry="133"></rect>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#ssSquircle)">
+    <rect x="0" y="0" width="512" height="512" fill="url(#ssWine)"></rect>
+    <rect x="0" y="0" width="512" height="512" fill="url(#ssSheen)"></rect>
+  </g>
+  <rect x="1.25" y="1.25" width="509.5" height="509.5" rx="132" ry="132" fill="none" stroke="#ffffff" stroke-opacity="0.28" stroke-width="2.5"></rect>
+  <g transform="translate(256 256) scale(3.379) translate(-50 -50)" fill="none" stroke="#ffffff" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M27 39 L50 57 L73 39"></path>
+    <path d="M27 58 L50 76 L73 58"></path>
+  </g>
+</svg>

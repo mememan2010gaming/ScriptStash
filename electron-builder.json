@@ -1,0 +1,66 @@
+{
+  "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
+  "appId": "com.scriptstash.app",
+  "productName": "ScriptStash",
+  "directories": {
+    "output": "dist",
+    "buildResources": "assets"
+  },
+  "files": ["main/**/*", "renderer/**/*", "package.json", "CHANGELOG.md"],
+  "publish": {
+    "provider": "github",
+    "owner": "mememan2010gaming",
+    "repo": "ScriptStash"
+  },
+  "linux": {
+    "target": [
+      {
+        "target": "AppImage",
+        "arch": ["x64", "arm64"]
+      }
+    ],
+    "icon": "assets/icons",
+    "category": "Utility",
+    "maintainer": "ScriptStash Contributors",
+    "synopsis": "Third-party browser and organizer for script communities",
+    "description": "A desktop application for browsing, downloading, and organizing scripts from community sources."
+  },
+  "appImage": {
+    "artifactName": "${productName}-${version}-${arch}.${ext}"
+  },
+  "mac": {
+    "target": [
+      {
+        "target": "dmg",
+        "arch": ["x64", "arm64"]
+      },
+      {
+        "target": "zip",
+        "arch": ["x64", "arm64"]
+      }
+    ],
+    "icon": "assets/icon.icns",
+    "category": "public.app-category.utilities"
+  },
+  "win": {
+    "target": [
+      {
+        "target": "nsis",
+        "arch": ["x64", "arm64"]
+      },
+      {
+        "target": "zip",
+        "arch": ["x64", "arm64"]
+      }
+    ],
+    "icon": "assets/icon.ico"
+  },
+  "nsis": {
+    "oneClick": false,
+    "perMachine": false,
+    "allowToChangeInstallationDirectory": true,
+    "installerIcon": "assets/icon.ico",
+    "uninstallerIcon": "assets/icon.ico",
+    "installerHeaderIcon": "assets/icon.ico"
+  }
+}

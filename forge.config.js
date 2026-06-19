@@ -1,0 +1,46 @@
+const { FusesPlugin } = require('@electron-forge/plugin-fuses')
+const { FuseV1Options, FuseVersion } = require('@electron/fuses')
+
+module.exports = {
+  packagerConfig: {
+    asar: true,
+    name: 'ScriptStash',
+    executableName: 'scriptstash',
+    appBundleId: 'com.scriptstash.app',
+    icon: './assets/icon',
+    appCopyright: 'Copyright (c) 2024-present ScriptStash Contributors',
+  },
+  rebuildConfig: {},
+  makers: [
+    {
+      name: '@electron-forge/maker-squirrel',
+      config: {
+        name: 'ScriptStash',
+        authors: 'ScriptStash Contributors',
+        description: 'Third-party browser and organizer for script communities',
+        setupIcon: './assets/icon.ico',
+      },
+    },
+    // Generate a zip for cross-platform distribution. Deb/RPM packaging can be handled
+    // separately (we use electron-builder AppImage for Linux builds in CI).
+    {
+      name: '@electron-forge/maker-zip',
+      platforms: ['darwin', 'win32', 'linux'],
+    },
+  ],
+  plugins: [
+    {
+      name: '@electron-forge/plugin-auto-unpack-natives',
+      config: {},
+    },
+    new FusesPlugin({
+      version: FuseVersion.V1,
+      [FuseV1Options.RunAsNode]: false,
+      [FuseV1Options.EnableCookieEncryption]: true,
+      [FuseV1Options.EnableNodeOptionsEnvironmentVariable]: false,
+      [FuseV1Options.EnableNodeCliInspectArguments]: false,
+      [FuseV1Options.EnableEmbeddedAsarIntegrityValidation]: true,
+      [FuseV1Options.OnlyLoadAppFromAsar]: true,
+    }),
+  ],
+}

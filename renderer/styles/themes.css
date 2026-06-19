@@ -1,0 +1,461 @@
+/* Theme System - CSS Custom Properties */
+
+/* ============================================
+   THEME: Ocean (Default)
+   ============================================ */
+[data-theme='ocean'][data-mode='dark'] {
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
+  --primary-light: rgba(59, 130, 246, 0.1);
+  --accent: #06b6d4;
+  --accent-hover: #0891b2;
+
+  --bg-primary: #0a0f1a;
+  --bg-secondary: #111827;
+  --bg-tertiary: #1f2937;
+  --bg-elevated: #263043;
+  --bg-hover: rgba(59, 130, 246, 0.08);
+  --bg-active: rgba(59, 130, 246, 0.15);
+
+  --surface: #1a2332;
+  --surface-hover: #243044;
+  --surface-border: #2d3f5a;
+
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-tertiary: #64748b;
+  --text-muted: #475569;
+
+  --border-color: #1e3a5f;
+  --border-light: #2d4a6f;
+
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #3b82f6;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 20px rgba(59, 130, 246, 0.15);
+
+  --gradient-primary: linear-gradient(135deg, #3b82f6, #06b6d4);
+  --gradient-surface: linear-gradient(180deg, #1a2332, #0a0f1a);
+}
+
+[data-theme='ocean'][data-mode='light'] {
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-light: rgba(37, 99, 235, 0.08);
+  --accent: #0891b2;
+  --accent-hover: #0e7490;
+
+  --bg-primary: #f8fafc;
+  --bg-secondary: #f1f5f9;
+  --bg-tertiary: #e2e8f0;
+  --bg-elevated: #ffffff;
+  --bg-hover: rgba(37, 99, 235, 0.06);
+  --bg-active: rgba(37, 99, 235, 0.12);
+
+  --surface: #ffffff;
+  --surface-hover: #f1f5f9;
+  --surface-border: #e2e8f0;
+
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-tertiary: #64748b;
+  --text-muted: #94a3b8;
+
+  --border-color: #cbd5e1;
+  --border-light: #e2e8f0;
+
+  --success: #059669;
+  --warning: #d97706;
+  --error: #dc2626;
+  --info: #2563eb;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.15);
+  --shadow-glow: 0 0 20px rgba(37, 99, 235, 0.1);
+
+  --gradient-primary: linear-gradient(135deg, #2563eb, #0891b2);
+  --gradient-surface: linear-gradient(180deg, #ffffff, #f8fafc);
+}
+
+/* ============================================
+   THEME: Crimson
+   ============================================ */
+[data-theme='crimson'][data-mode='dark'] {
+  --primary: #e11d48;
+  --primary-hover: #be123c;
+  --primary-light: rgba(225, 29, 72, 0.1);
+  --accent: #f97316;
+  --accent-hover: #ea580c;
+
+  --bg-primary: #0f0a0a;
+  --bg-secondary: #1a1111;
+  --bg-tertiary: #2d1f1f;
+  --bg-elevated: #3d2a2a;
+  --bg-hover: rgba(225, 29, 72, 0.08);
+  --bg-active: rgba(225, 29, 72, 0.15);
+
+  --surface: #231818;
+  --surface-hover: #3a2525;
+  --surface-border: #4d3333;
+
+  --text-primary: #fef2f2;
+  --text-secondary: #fca5a5;
+  --text-tertiary: #f87171;
+  --text-muted: #991b1b;
+
+  --border-color: #450a0a;
+  --border-light: #7f1d1d;
+
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #f87171;
+  --info: #e11d48;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 20px rgba(225, 29, 72, 0.2);
+
+  --gradient-primary: linear-gradient(135deg, #e11d48, #f97316);
+  --gradient-surface: linear-gradient(180deg, #231818, #0f0a0a);
+}
+
+[data-theme='crimson'][data-mode='light'] {
+  --primary: #dc2626;
+  --primary-hover: #b91c1c;
+  --primary-light: rgba(220, 38, 38, 0.08);
+  --accent: #ea580c;
+  --accent-hover: #c2410c;
+
+  --bg-primary: #fef2f2;
+  --bg-secondary: #fee2e2;
+  --bg-tertiary: #fecaca;
+  --bg-elevated: #ffffff;
+  --bg-hover: rgba(220, 38, 38, 0.06);
+  --bg-active: rgba(220, 38, 38, 0.12);
+
+  --surface: #ffffff;
+  --surface-hover: #fef2f2;
+  --surface-border: #fecaca;
+
+  --text-primary: #450a0a;
+  --text-secondary: #7f1d1d;
+  --text-tertiary: #991b1b;
+  --text-muted: #b91c1c;
+
+  --border-color: #fca5a5;
+  --border-light: #fecaca;
+
+  --success: #059669;
+  --warning: #d97706;
+  --error: #dc2626;
+  --info: #dc2626;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.15);
+  --shadow-glow: 0 0 20px rgba(220, 38, 38, 0.1);
+
+  --gradient-primary: linear-gradient(135deg, #dc2626, #ea580c);
+  --gradient-surface: linear-gradient(180deg, #ffffff, #fef2f2);
+}
+
+/* ============================================
+   THEME: Violet
+   ============================================ */
+[data-theme='violet'][data-mode='dark'] {
+  --primary: #8b5cf6;
+  --primary-hover: #7c3aed;
+  --primary-light: rgba(139, 92, 246, 0.1);
+  --accent: #ec4899;
+  --accent-hover: #db2777;
+
+  --bg-primary: #0c0a14;
+  --bg-secondary: #13111c;
+  --bg-tertiary: #1e1a2e;
+  --bg-elevated: #2d2745;
+  --bg-hover: rgba(139, 92, 246, 0.08);
+  --bg-active: rgba(139, 92, 246, 0.15);
+
+  --surface: #1a1726;
+  --surface-hover: #292540;
+  --surface-border: #3d3660;
+
+  --text-primary: #faf5ff;
+  --text-secondary: #c4b5fd;
+  --text-tertiary: #a78bfa;
+  --text-muted: #7c3aed;
+
+  --border-color: #3b2d6f;
+  --border-light: #4c3d80;
+
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #8b5cf6;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 20px rgba(139, 92, 246, 0.2);
+
+  --gradient-primary: linear-gradient(135deg, #8b5cf6, #ec4899);
+  --gradient-surface: linear-gradient(180deg, #1a1726, #0c0a14);
+}
+
+[data-theme='violet'][data-mode='light'] {
+  --primary: #7c3aed;
+  --primary-hover: #6d28d9;
+  --primary-light: rgba(124, 58, 237, 0.08);
+  --accent: #db2777;
+  --accent-hover: #be185d;
+
+  --bg-primary: #faf5ff;
+  --bg-secondary: #f3e8ff;
+  --bg-tertiary: #e9d5ff;
+  --bg-elevated: #ffffff;
+  --bg-hover: rgba(124, 58, 237, 0.06);
+  --bg-active: rgba(124, 58, 237, 0.12);
+
+  --surface: #ffffff;
+  --surface-hover: #faf5ff;
+  --surface-border: #e9d5ff;
+
+  --text-primary: #2e1065;
+  --text-secondary: #581c87;
+  --text-tertiary: #7c3aed;
+  --text-muted: #a855f7;
+
+  --border-color: #d8b4fe;
+  --border-light: #e9d5ff;
+
+  --success: #059669;
+  --warning: #d97706;
+  --error: #dc2626;
+  --info: #7c3aed;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.15);
+  --shadow-glow: 0 0 20px rgba(124, 58, 237, 0.1);
+
+  --gradient-primary: linear-gradient(135deg, #7c3aed, #db2777);
+  --gradient-surface: linear-gradient(180deg, #ffffff, #faf5ff);
+}
+
+/* ============================================
+   THEME: Emerald
+   ============================================ */
+[data-theme='emerald'][data-mode='dark'] {
+  --primary: #10b981;
+  --primary-hover: #059669;
+  --primary-light: rgba(16, 185, 129, 0.1);
+  --accent: #14b8a6;
+  --accent-hover: #0d9488;
+
+  --bg-primary: #0a1410;
+  --bg-secondary: #0f1f18;
+  --bg-tertiary: #1a3028;
+  --bg-elevated: #264536;
+  --bg-hover: rgba(16, 185, 129, 0.08);
+  --bg-active: rgba(16, 185, 129, 0.15);
+
+  --surface: #142620;
+  --surface-hover: #1f3a30;
+  --surface-border: #2d5545;
+
+  --text-primary: #ecfdf5;
+  --text-secondary: #6ee7b7;
+  --text-tertiary: #34d399;
+  --text-muted: #059669;
+
+  --border-color: #064e3b;
+  --border-light: #065f46;
+
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #10b981;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 20px rgba(16, 185, 129, 0.2);
+
+  --gradient-primary: linear-gradient(135deg, #10b981, #14b8a6);
+  --gradient-surface: linear-gradient(180deg, #142620, #0a1410);
+}
+
+[data-theme='emerald'][data-mode='light'] {
+  --primary: #059669;
+  --primary-hover: #047857;
+  --primary-light: rgba(5, 150, 105, 0.08);
+  --accent: #0d9488;
+  --accent-hover: #0f766e;
+
+  --bg-primary: #ecfdf5;
+  --bg-secondary: #d1fae5;
+  --bg-tertiary: #a7f3d0;
+  --bg-elevated: #ffffff;
+  --bg-hover: rgba(5, 150, 105, 0.06);
+  --bg-active: rgba(5, 150, 105, 0.12);
+
+  --surface: #ffffff;
+  --surface-hover: #ecfdf5;
+  --surface-border: #a7f3d0;
+
+  --text-primary: #064e3b;
+  --text-secondary: #065f46;
+  --text-tertiary: #047857;
+  --text-muted: #059669;
+
+  --border-color: #6ee7b7;
+  --border-light: #a7f3d0;
+
+  --success: #059669;
+  --warning: #d97706;
+  --error: #dc2626;
+  --info: #059669;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.15);
+  --shadow-glow: 0 0 20px rgba(5, 150, 105, 0.1);
+
+  --gradient-primary: linear-gradient(135deg, #059669, #0d9488);
+  --gradient-surface: linear-gradient(180deg, #ffffff, #ecfdf5);
+}
+
+/* ============================================
+   THEME: Sunset
+   ============================================ */
+[data-theme='sunset'][data-mode='dark'] {
+  --primary: #f97316;
+  --primary-hover: #ea580c;
+  --primary-light: rgba(249, 115, 22, 0.1);
+  --accent: #eab308;
+  --accent-hover: #ca8a04;
+
+  --bg-primary: #14100a;
+  --bg-secondary: #1f1710;
+  --bg-tertiary: #30251a;
+  --bg-elevated: #45362a;
+  --bg-hover: rgba(249, 115, 22, 0.08);
+  --bg-active: rgba(249, 115, 22, 0.15);
+
+  --surface: #261e14;
+  --surface-hover: #3d3022;
+  --surface-border: #5c4a35;
+
+  --text-primary: #fffbeb;
+  --text-secondary: #fcd34d;
+  --text-tertiary: #fbbf24;
+  --text-muted: #b45309;
+
+  --border-color: #78350f;
+  --border-light: #92400e;
+
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #f97316;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 20px rgba(249, 115, 22, 0.2);
+
+  --gradient-primary: linear-gradient(135deg, #f97316, #eab308);
+  --gradient-surface: linear-gradient(180deg, #261e14, #14100a);
+}
+
+[data-theme='sunset'][data-mode='light'] {
+  --primary: #ea580c;
+  --primary-hover: #c2410c;
+  --primary-light: rgba(234, 88, 12, 0.08);
+  --accent: #ca8a04;
+  --accent-hover: #a16207;
+
+  --bg-primary: #fffbeb;
+  --bg-secondary: #fef3c7;
+  --bg-tertiary: #fde68a;
+  --bg-elevated: #ffffff;
+  --bg-hover: rgba(234, 88, 12, 0.06);
+  --bg-active: rgba(234, 88, 12, 0.12);
+
+  --surface: #ffffff;
+  --surface-hover: #fffbeb;
+  --surface-border: #fde68a;
+
+  --text-primary: #78350f;
+  --text-secondary: #92400e;
+  --text-tertiary: #b45309;
+  --text-muted: #d97706;
+
+  --border-color: #fcd34d;
+  --border-light: #fde68a;
+
+  --success: #059669;
+  --warning: #d97706;
+  --error: #dc2626;
+  --info: #ea580c;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.15);
+  --shadow-glow: 0 0 20px rgba(234, 88, 12, 0.1);
+
+  --gradient-primary: linear-gradient(135deg, #ea580c, #ca8a04);
+  --gradient-surface: linear-gradient(180deg, #ffffff, #fffbeb);
+}
+
+/* ============================================
+   THEME: Custom (User-defined)
+   Base fallback - actual values are set via JS
+   ============================================ */
+[data-theme='custom'] {
+  /* Default fallback values - will be overridden by custom-theme-style */
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
+  --primary-light: rgba(59, 130, 246, 0.1);
+  --accent: #06b6d4;
+  --accent-hover: #0891b2;
+
+  --bg-primary: #0a0f1a;
+  --bg-secondary: #111827;
+  --bg-tertiary: #1f2937;
+  --bg-elevated: #263043;
+  --bg-hover: rgba(59, 130, 246, 0.08);
+  --bg-active: rgba(59, 130, 246, 0.15);
+
+  --surface: #1a2332;
+  --surface-hover: #243044;
+  --surface-border: #2d3f5a;
+
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-tertiary: #64748b;
+  --text-muted: #475569;
+
+  --border-color: #1e3a5f;
+  --border-light: #2d4a6f;
+
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #3b82f6;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 20px rgba(59, 130, 246, 0.15);
+
+  --gradient-primary: linear-gradient(135deg, #3b82f6, #06b6d4);
+  --gradient-surface: linear-gradient(180deg, #1a2332, #0a0f1a);
+}

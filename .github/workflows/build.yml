@@ -1,0 +1,321 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [master]
+    tags:
+      - 'v*'
+    paths:
+      - 'main/**'
+      - 'renderer/**'
+      - 'assets/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'forge.config.js'
+      - 'electron-builder.json'
+      - 'jsconfig.json'
+      - '.github/workflows/build.yml'
+  pull_request:
+    branches: [master]
+    paths:
+      - 'main/**'
+      - 'renderer/**'
+      - 'assets/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'forge.config.js'
+      - 'electron-builder.json'
+      - 'jsconfig.json'
+      - '.github/workflows/build.yml'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Run tests first
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linter
+        run: npm run lint
+
+      - name: Run tests
+        run: npm test
+
+  # Build for Windows
+  build-windows:
+    needs: test
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        arch: [x64, arm64]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Windows (${{ matrix.arch }})
+        run: npm run make -- --platform=win32 --arch=${{ matrix.arch }}
+
+      - name: Stage Windows artifacts (${{ matrix.arch }})
+        shell: pwsh
+        run: |
+          $arch = "${{ matrix.arch }}"
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          $src = "out/make/squirrel.windows/$arch"
+          $stage = "staging"
+          New-Item -ItemType Directory -Force -Path $stage | Out-Null
+          Write-Host "Squirrel output ($src):"
+          Get-ChildItem $src | ForEach-Object { Write-Host "  $($_.Name)" }
+          # Installer: rename with arch so the two arches don't collide as release assets.
+          Copy-Item "$src/ScriptStash-$version Setup.exe" "$stage/ScriptStash-$version-$arch-Setup.exe" -Force
+          # Squirrel auto-update metadata. update.electronjs.org keys by platform (not
+          # arch), so only ONE arch's RELEASES/nupkg can drive auto-update — we use x64.
+          # Their filenames must stay intact (RELEASES references the nupkg by name).
+          if ($arch -eq "x64") {
+            Copy-Item "$src/RELEASES" "$stage/RELEASES" -Force
+            Copy-Item "$src/*.nupkg" $stage -Force
+          }
+          Get-ChildItem $stage | ForEach-Object { Write-Host $_.Name }
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-builds-${{ matrix.arch }}
+          path: staging/**
+          retention-days: 30
+
+  # Build for macOS
+  build-macos:
+    needs: test
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build macOS (x64)
+        run: npm run make -- --platform=darwin --arch=x64
+
+      - name: Build macOS (arm64 - Apple Silicon)
+        run: npm run make -- --platform=darwin --arch=arm64
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-builds
+          path: |
+            out/make/**/*.dmg
+            out/make/**/*.zip
+          retention-days: 30
+
+  # Build AppImage for universal Linux support
+  build-linux-appimage:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install AppImage dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libfuse2
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Build both arches in a single invocation so electron-updater emits
+      # correctly-named per-arch metadata (latest-linux.yml + latest-linux-arm64.yml)
+      # instead of one overwriting the other.
+      - name: Build AppImage (x64 + arm64)
+        run: npx electron-builder --linux AppImage --x64 --arm64 --publish=never
+
+      - name: Upload AppImage artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-appimage-builds
+          path: |
+            dist/*.AppImage
+            dist/*.yml
+            dist/*.blockmap
+          retention-days: 30
+          if-no-files-found: warn
+
+  # Build for Android using Capacitor (experimental/optional)
+  build-android:
+    needs: test
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          api-levels: '33'
+          components: 'platform-tools,platforms;android-33,build-tools;33.0.2'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prepare web directory for Capacitor
+        run: |
+          # Ensure renderer has an index.html at root
+          if [ ! -f renderer/index.html ]; then
+            echo "Error: renderer/index.html not found"
+            exit 1
+          fi
+
+      - name: Install Capacitor
+        run: |
+          npm install @capacitor/core @capacitor/cli @capacitor/android
+          npx cap init scriptstash com.scriptstash.app --web-dir=renderer || true
+
+      - name: Add Android platform
+        run: npx cap add android || true
+
+      - name: Sync Capacitor & accept SDK licenses
+        run: |
+          npx cap sync android || true
+          # accept Android SDK licenses
+          yes | sdkmanager --licenses || true
+
+      - name: Make Gradle wrapper executable
+        run: |
+          if [ -f android/gradlew ]; then
+            chmod +x android/gradlew
+          fi
+
+      - name: Build Android APK (Debug)
+        run: |
+          if [ -d android ]; then
+            cd android
+            ./gradlew assembleDebug --no-daemon --stacktrace || echo "Android build failed, continuing..."
+          else
+            echo "Android project not initialized, skipping build"
+          fi
+
+      - name: Upload Android artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-builds
+          path: |
+            android/app/build/outputs/apk/**/*.apk
+          retention-days: 30
+          if-no-files-found: warn
+
+  # Create draft release on every push to master, or publish release when a tag is pushed
+  release:
+    if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v')
+    needs: [build-windows, build-macos, build-linux-appimage, build-android]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Read app version
+        id: ver
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Display structure of downloaded files
+        run: ls -R artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: false
+          prerelease: false
+          make_latest: true
+          generate_release_notes: true
+          # Tag and name come straight from package.json's version, so the
+          # release matches the embedded app version. Auto-update correctness
+          # depends on this version being bumped (strictly increasing) on every
+          # release — see the Version Bump Rule in CLAUDE.md. A duplicate version
+          # will fail to create the tag, which safely forces a bump.
+          tag_name: v${{ steps.ver.outputs.version }}
+          name: ${{ format('ScriptStash v{0} (build {1})', steps.ver.outputs.version, github.run_number) }}
+          # RELEASES + *.nupkg drive Squirrel.Windows auto-update (x64), *.yml drives
+          # electron-updater (Linux AppImage). The rest are direct-download installers.
+          files: |
+            artifacts/**/*.exe
+            artifacts/**/*.nupkg
+            artifacts/RELEASES
+            artifacts/**/*.zip
+            artifacts/**/*.AppImage
+            artifacts/**/*.yml
+            artifacts/**/*.blockmap
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cleanup old releases
+        run: |
+          echo "Fetching all releases..."
+          gh release list --limit 100 --json tagName,createdAt | \
+          jq -r 'sort_by(.createdAt) | reverse | .[2:] | .[].tagName' | \
+          while read -r tag; do
+            echo "Deleting old release: $tag"
+            gh release delete "$tag" --yes --cleanup-tag || echo "Failed to delete $tag, continuing..."
+          done
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

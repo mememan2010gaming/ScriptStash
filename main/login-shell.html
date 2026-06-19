@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ScriptStash — Sign In</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0e0e1a;
+      --panel-bg: #111120;
+      --border: rgba(255,255,255,0.07);
+      --text: rgba(255,255,255,0.92);
+      --text-muted: rgba(255,255,255,0.42);
+      --accent: #ff4d79;
+      --accent-2: #ff9a5c;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .root {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    /* Titlebar */
+    .titlebar {
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px 0 18px;
+      background: rgba(255,255,255,0.025);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      -webkit-app-region: drag;
+    }
+    .titlebar-label {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.02em;
+    }
+    .close-btn {
+      -webkit-app-region: no-drag;
+      width: 26px;
+      height: 26px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: 6px;
+      font-size: 15px;
+      display: grid;
+      place-items: center;
+      transition: background 0.12s, color 0.12s;
+    }
+    .close-btn:hover {
+      background: rgba(255,50,50,0.2);
+      color: #ff5555;
+    }
+
+    /* Body split */
+    .content {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* Left branding panel */
+    .panel {
+      width: 272px;
+      flex-shrink: 0;
+      background: var(--panel-bg);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 44px 28px 32px;
+    }
+
+    .logo-wrap {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 20px;
+      flex-shrink: 0;
+    }
+    .logo-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .app-name {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.4px;
+      margin-bottom: 9px;
+    }
+
+    .tagline {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.62;
+      margin-bottom: 30px;
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin-bottom: 24px;
+    }
+
+    .steps-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.11em;
+      color: rgba(255,255,255,0.28);
+      margin-bottom: 14px;
+    }
+
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 11px;
+    }
+
+    .step-num {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: rgba(255,77,121,0.12);
+      border: 1px solid rgba(255,77,121,0.28);
+      color: var(--accent);
+      font-size: 10px;
+      font-weight: 700;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .step-text {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    .footer-note {
+      margin-top: auto;
+      padding-top: 24px;
+      font-size: 10.5px;
+      color: rgba(255,255,255,0.18);
+      line-height: 1.55;
+    }
+
+    webview {
+      flex: 1;
+      display: flex;
+    }
+  </style>
+</head>
+<body>
+  <div class="root">
+    <div class="titlebar">
+      <span class="titlebar-label">ScriptStash — Sign In</span>
+      <button class="close-btn" id="closeBtn">✕</button>
+    </div>
+    <div class="content">
+      <div class="panel">
+        <div class="logo-wrap"><img src="../assets/icon.png" alt="ScriptStash" /></div>
+        <div class="app-name">ScriptStash</div>
+        <div class="tagline">Browse and download scripts from EroScripts. Sign in to get started.</div>
+        <div class="divider"></div>
+        <div class="steps-label">How it works</div>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-text">Log in or register a free EroScripts account on the right</div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-text">ScriptStash detects your sign-in automatically</div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-text">Your session is saved locally and never shared</div>
+          </div>
+        </div>
+        <div class="footer-note">
+          ScriptStash is not affiliated with EroScripts. Credentials are sent only to EroScripts servers.
+        </div>
+      </div>
+      <webview id="loginView" src="https://discuss.eroscripts.com/login" partition="persist:scriptstash"></webview>
+    </div>
+  </div>
+  <script>
+    document.getElementById('closeBtn').addEventListener('click', () => {
+      window.loginAPI?.closeWindow()
+    })
+
+    const wv = document.getElementById('loginView')
+
+    wv.addEventListener('did-navigate', e => {
+      if (e.url && e.url.includes('discuss.eroscripts.com') && !e.url.includes('/login')) {
+        window.loginAPI?.loginDetected()
+      }
+    })
+
+    wv.addEventListener('did-navigate-in-page', e => {
+      if (e.isMainFrame && e.url && e.url.includes('discuss.eroscripts.com') && !e.url.includes('/login')) {
+        window.loginAPI?.loginDetected()
+      }
+    })
+  </script>
+</body>
+</html>

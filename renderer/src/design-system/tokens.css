@@ -1,0 +1,232 @@
+/* ============================================================
+   ScriptStash — Liquid Glass Design Tokens
+   ============================================================ */
+
+:root {
+  /* ---- Backgrounds ---- */
+  --bg: #130d12;
+  --bg-deep: #0b0709;
+
+  /* ---- Glass surfaces ---- */
+  --glass: rgba(26, 16, 22, 0.42);
+  --glass-strong: rgba(34, 21, 29, 0.58);
+  --glass-hover: rgba(42, 27, 37, 0.52);
+  --glass-active: rgba(52, 34, 46, 0.62);
+  --glass-border: rgba(255, 255, 255, 0.09);
+  --glass-border-bright: rgba(255, 255, 255, 0.22);
+  --glass-blur: 28px;
+  --glass-saturate: 160%;
+  --glass-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.07) inset, 0 -1px 0 rgba(0, 0, 0, 0.25) inset,
+    0 14px 44px rgba(0, 0, 0, 0.38);
+
+  /* themed semantic tokens (overridden per theme in themes.js) */
+  --app-bg: radial-gradient(125% 120% at 30% 0%, #1c0f16 0%, #120a0e 55%, #0a070a 100%);
+  --glass-specular: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.14) 0px,
+    rgba(255, 255, 255, 0.04) 1px,
+    rgba(255, 255, 255, 0) 40%,
+    rgba(0, 0, 0, 0.08) 100%
+  );
+  --sheen: rgba(255, 255, 255, 0.11);
+  --code-bg: rgba(0, 0, 0, 0.4);
+  --toggle-off: rgba(255, 255, 255, 0.08);
+  --overlay: rgba(0, 0, 0, 0.6);
+  --on-accent: #ffffff;
+  --knob: #ffffff;
+  --scrollbar: rgba(255, 255, 255, 0.1);
+  --scrollbar-hover: rgba(255, 255, 255, 0.2);
+
+  /* surface aliases for components that use the old var names */
+  --surface: var(--glass);
+  --surface-2: var(--glass-strong);
+  --surface-3: var(--glass-hover);
+  --border: var(--glass-border);
+  --border-subtle: rgba(255, 255, 255, 0.05);
+
+  /* specular pointer position (set by JS on mousemove) */
+  --mx: 50%;
+  --my: 0%;
+
+  /* ---- Text ---- */
+  --text: #f5ecf0;
+  --text-muted: rgba(245, 236, 240, 0.58);
+  --text-faint: rgba(245, 236, 240, 0.34);
+  --text-primary: #f5ecf0;
+
+  /* ---- Accent: rose (overridden by ThemeContext) ---- */
+  --accent: #ff4d79;
+  --accent-2: #ff8aad;
+  --accent-deep: #e22a63;
+  --accent-soft: rgba(255, 77, 121, 0.14);
+  --accent-glow: rgba(255, 77, 121, 0.42);
+  --accent-gradient: linear-gradient(135deg, #ff8fb1 0%, #ff3d72 55%, #e22a63 100%);
+  --accent-alt: #ff8aad;
+  --primary: #ff4d79;
+
+  /* ---- Status ---- */
+  --green: #3be0a0;
+  --green-soft: rgba(59, 224, 160, 0.12);
+  --red: #ff5d6c;
+  --yellow: #ffc24b;
+
+  /* ---- Shape ---- */
+  --radius-xs: 7px;
+  --radius-sm: 10px;
+  --radius: 15px;
+  --radius-lg: 20px;
+  --radius-xl: 26px;
+  --radius-pill: 999px;
+  --radius-full: 9999px;
+
+  /* ---- Shadows ---- */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.32);
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.42);
+  --shadow-lg: 0 28px 70px rgba(0, 0, 0, 0.55);
+
+  /* ---- Layout ---- */
+  --sidebar-width: 248px;
+  --titlebar-height: 46px;
+  --header-height: 46px;
+
+  /* ---- Transitions ---- */
+  --t-fast: 130ms cubic-bezier(0.22, 1, 0.36, 1);
+  --t: 250ms cubic-bezier(0.22, 1, 0.36, 1);
+  --t-slow: 440ms cubic-bezier(0.22, 1, 0.36, 1);
+  --transition: 250ms cubic-bezier(0.22, 1, 0.36, 1);
+  --transition-fast: 130ms cubic-bezier(0.22, 1, 0.36, 1);
+  --transition-slow: 440ms cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* ---- Typography ---- */
+  --font-ui: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Space Grotesk', var(--font-ui);
+  --font-sans: var(--font-ui);
+  --font-mono: 'Space Grotesk', ui-monospace, monospace;
+
+  /* z-index scale */
+  --z-base: 1;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-overlay: 500;
+  --z-modal: 1000;
+  --z-tooltip: 1100;
+  --z-titlebar: 9999;
+}
+
+/* ---- Global reset ---- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: var(--bg-deep);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button {
+  font-family: inherit;
+}
+::selection {
+  background: var(--accent-glow);
+  color: var(--on-accent);
+}
+
+/* ---- Scrollbar ---- */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar);
+  border-radius: 99px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-hover);
+  background-clip: padding-box;
+}
+
+/* ---- Animations ---- */
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.75);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fadeUpT {
+  from {
+    transform: translateY(8px);
+    opacity: 0.6;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
