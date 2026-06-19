@@ -884,9 +884,7 @@ export default function SettingsView({ activeSection, onSectionChange }) {
               <p className="credits-tagline">
                 A native desktop browser and downloader for script communities.
               </p>
-              {appVersion && (
-                <span className="credits-version">v{appVersion}</span>
-              )}
+              {appVersion && <span className="credits-version">v{appVersion}</span>}
             </div>
 
             <SectionLabel>Contributors</SectionLabel>
