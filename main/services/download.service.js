@@ -5,6 +5,7 @@ const path = require('path')
 const store = require('../store/config')
 const authService = require('./auth.service')
 const YTDlpWrap = require('yt-dlp-wrap').default
+const { File: MegaFile } = require('megajs')
 
 // Extensions that are served as direct file downloads (not streaming pages)
 const DIRECT_FILE_EXTENSIONS = new Set([
@@ -75,7 +76,8 @@ class DownloadService {
           queuedDownload.url,
           queuedDownload.filename,
           window,
-          queuedDownload.downloadId
+          queuedDownload.downloadId,
+          queuedDownload.nodeId || null
         ).catch(error => {
           console.error('Download error in queue:', error.message)
         })
@@ -104,14 +106,14 @@ class DownloadService {
    * @param {string} filename - Destination filename
    * @param {BrowserWindow} window - Window to send progress updates
    */
-  async downloadFile(url, filename, window) {
+  async downloadFile(url, filename, window, nodeId = null) {
     const downloadId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
 
     // Check if we're at max capacity
     const maxDownloads = this.getMaxSimultaneousDownloads()
     if (this.activeDownloads.size >= maxDownloads) {
       // Add to queue
-      this.downloadQueue.push({ url, filename, downloadId })
+      this.downloadQueue.push({ url, filename, downloadId, nodeId })
       window?.webContents.send('download-queued', {
         url,
         filename,
@@ -122,13 +124,13 @@ class DownloadService {
     }
 
     // Start download immediately
-    return await this.executeDownload(url, filename, window, downloadId)
+    return await this.executeDownload(url, filename, window, downloadId, nodeId)
   }
 
   /**
    * Execute download (internal method)
    */
-  async executeDownload(url, filename, window, downloadId) {
+  async executeDownload(url, filename, window, downloadId, nodeId = null) {
     // Detect URL type and route to appropriate handler
     const urlType = this.detectUrlType(url)
 
@@ -161,6 +163,8 @@ class DownloadService {
         result = await this.downloadFromGofile(url, filename, window, downloadId)
       } else if (urlType === 'bunkr') {
         result = await this.downloadFromBunkr(url, filename, window, downloadId)
+      } else if (urlType === 'mega') {
+        result = await this.downloadFromMega(url, filename, window, downloadId, nodeId)
       } else {
         // Default: direct download
         result = await this.downloadDirect(url, filename, window, downloadId)
@@ -829,6 +833,81 @@ class DownloadService {
   /**
    * Sanitize filename for filesystem
    */
+  async downloadFromMega(url, filename, window, downloadId, nodeId = null) {
+    this.sendLog(window, 'download', `Starting MEGA download: ${url}`)
+
+    const root = MegaFile.fromURL(url)
+    await root.loadAttributes()
+
+    // Resolve target node (root for file links, a child for folder links)
+    let node = root
+    if (nodeId) {
+      const flatten = n => [n, ...(n.children || []).flatMap(c => flatten(c))]
+      node = flatten(root).find(n => n.nodeId === nodeId)
+      if (!node) throw new Error(`MEGA: file node ${nodeId} not found in folder`)
+    }
+
+    const realFilename = this.sanitizeFilename(node.name || filename)
+    const filePath = path.join(this.downloadPath, realFilename)
+    const totalBytes = node.size || 0
+    const trackingUrl = nodeId ? `${url}#node-${nodeId}` : url
+
+    if (this.activeDownloads.has(trackingUrl)) {
+      return { error: 'File is already being downloaded' }
+    }
+
+    this.activeDownloads.set(trackingUrl, downloadId)
+
+    try {
+      const stream = node.download()
+      const writer = fs.createWriteStream(filePath)
+      let receivedBytes = 0
+
+      await new Promise((resolve, reject) => {
+        stream.on('data', chunk => {
+          receivedBytes += chunk.length
+          const progress = totalBytes > 0 ? Math.round((receivedBytes / totalBytes) * 100) : 0
+          if (window && !window.isDestroyed()) {
+            window.webContents.send('download-progress', {
+              downloadId,
+              filename: realFilename,
+              url: trackingUrl,
+              progress,
+              bytesReceived: receivedBytes,
+              totalBytes,
+            })
+          }
+        })
+        stream.on('error', reject)
+        stream.pipe(writer)
+        writer.on('finish', resolve)
+        writer.on('error', reject)
+      })
+
+      const result = { filename: realFilename, path: filePath, url: trackingUrl, downloadId }
+
+      this.addToHistory({
+        url: trackingUrl,
+        filename: realFilename,
+        path: filePath,
+        date: new Date().toISOString(),
+      })
+
+      if (window && !window.isDestroyed()) {
+        window.webContents.send('download-complete', result)
+      }
+
+      this.sendLog(window, 'download', `MEGA download completed: ${realFilename}`)
+      return result
+    } catch (error) {
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath)
+      this.sendLog(window, 'error', `MEGA download failed: ${error.message}`)
+      throw error
+    } finally {
+      this.activeDownloads.delete(trackingUrl)
+    }
+  }
+
   sanitizeFilename(filename) {
     return filename
       .replace(/[<>:"/\\|?*]/g, '_')
