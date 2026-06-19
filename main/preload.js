@@ -24,7 +24,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   loginSuccess: () => ipcRenderer.send('login-success'),
 
   // Downloads
-  downloadFile: (url, filename) => ipcRenderer.invoke('download-file', { url, filename }),
+  downloadFile: (url, filename, nodeId = null) => ipcRenderer.invoke('download-file', { url, filename, nodeId }),
+  getMegaFolderFiles: url => ipcRenderer.invoke('mega:get-folder-files', { url }),
   openExternal: url => ipcRenderer.invoke('open-external', url),
   getDownloadPath: () => ipcRenderer.invoke('get-download-path'),
   setDownloadPath: path => ipcRenderer.invoke('set-download-path', { path }),

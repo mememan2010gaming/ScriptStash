@@ -6,13 +6,41 @@ function setupDownloadHandlers() {
   /**
    * Download a file
    */
-  ipcMain.handle('download-file', async (event, { url, filename }) => {
+  ipcMain.handle('download-file', async (event, { url, filename, nodeId = null }) => {
     try {
       const window = BrowserWindow.fromWebContents(event.sender) || getMainWindow()
-      const result = await downloadService.downloadFile(url, filename, window)
+      const result = await downloadService.downloadFile(url, filename, window, nodeId)
       return { success: true, data: result }
     } catch (error) {
       console.error('Error downloading file:', error.message)
+      return { success: false, error: error.message }
+    }
+  })
+
+  ipcMain.handle('mega:get-folder-files', async (event, { url }) => {
+    try {
+      const { File: MegaFile } = require('megajs')
+      const root = MegaFile.fromURL(url)
+      await root.loadAttributes()
+
+      if (!root.children) {
+        return { success: true, data: { isSingleFile: true, filename: root.name, size: root.size } }
+      }
+
+      const flatten = n =>
+        n.children ? n.children.flatMap(c => flatten(c)) : [{ name: n.name, size: n.size, nodeId: n.nodeId }]
+      const files = flatten(root)
+
+      if (files.length <= 1) {
+        const f = files[0] || {}
+        return { success: true, data: { isSingleFile: true, filename: f.name, size: f.size, nodeId: f.nodeId } }
+      }
+
+      return {
+        success: true,
+        data: { isSingleFile: false, folderName: root.name, files },
+      }
+    } catch (error) {
       return { success: false, error: error.message }
     }
   })

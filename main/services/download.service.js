@@ -502,8 +502,27 @@ class DownloadService {
         // yt-dlp handles this — assume valid if yt-dlp is present (probing every URL is too slow)
         return { valid: ytDlp !== null }
       } else if (urlType === 'mega') {
-        // MEGA requires browser/special handling
-        return { valid: false, needsBrowser: true }
+        try {
+          const root = MegaFile.fromURL(url)
+          await root.loadAttributes()
+
+          if (!root.children) {
+            return { valid: true, filename: root.name, size: root.size }
+          }
+
+          const flatten = n =>
+            n.children ? n.children.flatMap(c => flatten(c)) : [{ name: n.name, size: n.size, nodeId: n.nodeId }]
+          const files = flatten(root)
+
+          if (files.length === 0) return { valid: false, error: 'Empty folder' }
+          if (files.length === 1) {
+            return { valid: true, filename: files[0].name, size: files[0].size, nodeId: files[0].nodeId }
+          }
+          return { valid: true, isMegaFolder: true, folderName: root.name, files }
+        } catch (error) {
+          console.error('MEGA verify error:', error.message)
+          return { valid: false, error: error.message }
+        }
       } else {
         // Direct links - try HEAD, fallback to GET
         try {
