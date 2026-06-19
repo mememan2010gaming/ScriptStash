@@ -119,3 +119,7 @@ id_ed25519*
 # Local configuration overrides
 local.config.js
 *.local.js
+
+# Tool metadata
+.headroom
+.serena

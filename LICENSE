@@ -1,106 +1,21 @@
-# ScriptStash Custom License
+MIT License
 
-Copyright (c) 2026-present, ScriptStash Contributors
+Copyright (c) 2026 ScriptStash Contributors
 
-## Terms and Conditions
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-### 1. Definitions
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-- "Software" refers to ScriptStash and all associated source code, documentation, assets, and related files.
-- "Author" refers to the original creator and copyright holder of this Software.
-- "Contributor" refers to any person who submits modifications, improvements, or additions to this Software through the official repository.
-- "Commercial Use" means any use of the Software intended for or directed toward commercial advantage or monetary compensation.
-- "Official Repository" means the primary GitHub repository designated by the Author for this Software.
-
-### 2. Permissions
-
-Subject to the terms and conditions of this license, you are granted the following rights:
-
-#### 2.1 Personal Use
-You may use, copy, and run this Software for personal, non-commercial purposes.
-
-#### 2.2 Contribution Rights
-You may fork, modify, and submit contributions to this Software **only through the Official Repository**. All contributions must be submitted as pull requests to the main repository and are subject to review and approval by the Author or designated maintainers.
-
-#### 2.3 Educational Use
-You may use this Software for educational purposes, including academic research and learning, provided such use is non-commercial.
-
-#### 2.4 Distribution of Unmodified Copies
-You may distribute unmodified copies of this Software, provided that:
-- This license file is included in its entirety
-- Proper attribution is given to the Author
-- No commercial benefit is derived from such distribution
-
-### 3. Restrictions
-
-#### 3.1 No Commercial Use Without Permission
-You may NOT use this Software, in whole or in part, for any Commercial Use without obtaining prior written permission from the Author. This includes but is not limited to:
-- Selling the Software or any derivative works
-- Using the Software as part of a paid service or product
-- Using the Software to generate revenue through advertising
-- Incorporating the Software into proprietary commercial products
-
-#### 3.2 No Unauthorized Redistribution
-You may NOT redistribute modified versions of this Software outside of the Official Repository. All modifications must be contributed back to the main project through proper channels (pull requests).
-
-#### 3.3 No Claiming Ownership
-You may NOT claim ownership of this Software or represent yourself as the original author. All derivative works must clearly acknowledge the original Author and this project.
-
-#### 3.4 No Removal of License
-You may NOT remove, alter, or obscure this license, copyright notices, or any other proprietary notices from the Software.
-
-#### 3.5 No Trademark Use
-This license does not grant permission to use the trade names, trademarks, service marks, or product names of the Author, except as required for reasonable and customary use in describing the origin of the Software.
-
-### 4. Contributions
-
-#### 4.1 Contributor License Agreement
-By submitting any contribution to the Official Repository, you:
-- Grant the Author a perpetual, worldwide, non-exclusive, royalty-free license to use, reproduce, modify, display, perform, sublicense, and distribute your contribution
-- Represent that you have the legal right to grant such license
-- Agree that your contribution may be distributed under the terms of this license
-- Agree that the Author may change the license terms for future versions
-
-#### 4.2 Attribution
-Contributors will be acknowledged in the project documentation or changelog at the Author's discretion.
-
-### 5. Warranty Disclaimer
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-### 6. Limitation of Liability
-
-IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-### 7. Indemnification
-
-You agree to indemnify and hold harmless the Author from any claims, damages, losses, or expenses (including reasonable attorney fees) arising from your use of the Software or violation of this license.
-
-### 8. Third-Party Content
-
-This Software may include or link to third-party libraries, services, or content. Such third-party components are subject to their own licenses and terms. The Author makes no warranties regarding third-party content and is not responsible for any third-party services or their availability.
-
-### 9. Privacy and Data
-
-This Software may collect and store user data locally on the user's device. The Author is not responsible for the security of user data. Users are responsible for maintaining the security of their own systems and data.
-
-### 10. Termination
-
-This license automatically terminates if you violate any of its terms. Upon termination, you must cease all use of the Software and destroy all copies in your possession.
-
-### 11. Severability
-
-If any provision of this license is held to be unenforceable, such provision shall be reformed only to the extent necessary to make it enforceable, and the remaining provisions shall continue in full force and effect.
-
-### 12. Governing Law
-
-This license shall be governed by and construed in accordance with applicable copyright law, without regard to conflicts of law principles.
-
-### 13. Contact for Commercial Licensing
-
-For commercial licensing inquiries or special permissions, please contact the Author through the Official Repository or designated contact channels.
-
-### 14. Amendments
-
-The Author reserves the right to modify this license for future versions of the Software. Such modifications will not retroactively affect previously released versions unless explicitly stated.
-
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

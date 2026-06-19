@@ -10,7 +10,7 @@
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-blue?style=flat-square&logo=electron&logoColor=white)](../../releases)
 [![Electron](https://img.shields.io/badge/Electron-28-47848F?style=flat-square&logo=electron&logoColor=white)](https://electronjs.org)
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev)
-[![License](https://img.shields.io/badge/license-Custom-lightgrey?style=flat-square)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
 
 
 [**Download**](../../releases/latest) &nbsp;·&nbsp; [**Report a Bug**](../../issues) &nbsp;·&nbsp; [**Request a Feature**](../../issues)
