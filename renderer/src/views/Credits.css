@@ -1,0 +1,221 @@
+/* ============================================================
+   Credits / About — Settings section
+   ============================================================ */
+
+.credits {
+  max-width: 640px;
+}
+
+/* ---- Hero ---- */
+.credits-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 14px 0 30px;
+}
+
+.credits-logo {
+  width: 84px;
+  height: 84px;
+  border-radius: var(--radius-lg);
+  object-fit: cover;
+  box-shadow:
+    0 0 0 1px var(--glass-border-bright),
+    0 18px 44px rgba(0, 0, 0, 0.45),
+    0 0 38px var(--accent-glow);
+}
+
+.credits-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-top: 18px;
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.credits-tagline {
+  color: var(--text-muted);
+  font-size: 14px;
+  margin-top: 6px;
+  max-width: 380px;
+}
+
+.credits-version {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  padding: 5px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-soft);
+  border: 1px solid var(--glass-border);
+  color: var(--accent-2);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+}
+
+/* ---- Contributor cards ---- */
+.credits-people {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.credits-person {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--glass-border);
+  background: var(--glass);
+  color: inherit;
+  transition:
+    transform var(--t-fast),
+    border-color var(--t-fast),
+    background var(--t-fast);
+}
+
+.credits-person:hover {
+  transform: translateY(-2px);
+  background: var(--glass-hover);
+  border-color: var(--glass-border-bright);
+}
+
+.credits-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  padding: 2px;
+  background: var(--accent-gradient);
+  object-fit: cover;
+  box-shadow: 0 0 18px var(--accent-glow);
+}
+
+.credits-person-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.credits-person-name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: -0.01em;
+}
+
+.credits-person-role {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+.credits-person-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  color: var(--text-faint);
+  flex-shrink: 0;
+  transition:
+    color var(--t-fast),
+    background var(--t-fast);
+}
+
+.credits-person:hover .credits-person-link {
+  color: var(--accent-2);
+  background: var(--accent-soft);
+}
+
+/* ---- Built with chips ---- */
+.credits-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 30px;
+}
+
+.credits-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--glass-border);
+  background: var(--glass);
+  font-size: 13px;
+  transition:
+    border-color var(--t-fast),
+    background var(--t-fast);
+}
+
+.credits-chip:hover {
+  border-color: var(--glass-border-bright);
+  background: var(--glass-hover);
+}
+
+.credits-chip-name {
+  font-weight: 600;
+}
+
+.credits-chip-license {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+}
+
+/* ---- Legal ---- */
+.credits-legal {
+  padding: 18px;
+  border-radius: var(--radius);
+  border: 1px solid var(--glass-border);
+  background: var(--glass);
+  margin-bottom: 30px;
+}
+
+.credits-legal-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+
+.credits-legal p {
+  color: var(--text-muted);
+  font-size: 12.5px;
+  line-height: 1.65;
+}
+
+.credits-legal p + p {
+  margin-top: 10px;
+}
+
+/* ---- Footer ---- */
+.credits-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--text-faint);
+  font-size: 12.5px;
+  padding-bottom: 8px;
+}
+
+.credits-footer .credits-heart {
+  color: var(--accent);
+}

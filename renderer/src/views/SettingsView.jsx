@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useTheme } from '../contexts/ThemeContext'
 import { useToast } from '../contexts/ToastContext'
 import Icon from '../design-system/components/Icon'
+import './Credits.css'
 
 const SECTIONS = [
   { id: 'general', label: 'General' },
@@ -872,91 +873,85 @@ export default function SettingsView({ activeSection, onSectionChange }) {
 
         {/* ---- Credits ---- */}
         {section === 'credits' && (
-          <div className="fade-in">
+          <div className="credits fade-in">
+            <div className="credits-hero">
+              <img
+                className="credits-logo"
+                src={`${import.meta.env.BASE_URL}favicon.svg`}
+                alt="ScriptStash"
+              />
+              <div className="credits-title">ScriptStash</div>
+              <p className="credits-tagline">
+                A native desktop browser and downloader for script communities.
+              </p>
+              {appVersion && (
+                <span className="credits-version">
+                  <Icon name="sparkle" size={12} />v{appVersion}
+                </span>
+              )}
+            </div>
+
             <SectionLabel>Contributors</SectionLabel>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 28 }}>
+            <div className="credits-people">
               {CONTRIBUTORS.map(c => (
                 <a
                   key={c.username}
+                  className="credits-person"
                   href={c.github}
                   target="_blank"
                   rel="noreferrer"
-                  className="glass glass-hover"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 16,
-                    padding: '14px 18px',
-                    borderRadius: 14,
-                    border: '1px solid var(--glass-border)',
-                    textDecoration: 'none',
-                    color: 'inherit',
-                  }}
                 >
-                  <img
-                    src={c.avatar}
-                    alt={c.username}
-                    style={{ width: 44, height: 44, borderRadius: '50%', flexShrink: 0 }}
-                  />
-                  <div>
-                    <div style={{ fontWeight: 600, fontSize: 15 }}>{c.username}</div>
-                    <div style={{ fontSize: 13, opacity: 0.55, marginTop: 2 }}>{c.role}</div>
+                  <img className="credits-avatar" src={c.avatar} alt={c.username} />
+                  <div className="credits-person-info">
+                    <div className="credits-person-name">{c.username}</div>
+                    <div className="credits-person-role">{c.role}</div>
                   </div>
+                  <span className="credits-person-link">
+                    <Icon name="external" size={17} />
+                  </span>
                 </a>
               ))}
             </div>
 
             <SectionLabel>Built with</SectionLabel>
-            <div
-              className="glass"
-              style={{ borderRadius: 14, padding: '10px 18px', marginBottom: 28 }}
-            >
+            <div className="credits-chips">
               {[
-                { name: 'Electron', license: 'MIT' },
-                { name: 'React', license: 'MIT' },
-                { name: 'Vite', license: 'MIT' },
-                { name: 'axios', license: 'MIT' },
-                { name: 'yt-dlp-wrap', license: 'MIT' },
-                { name: 'electron-store', license: 'MIT' },
-                { name: 'date-fns', license: 'MIT' },
-              ].map((pkg, i, arr) => (
-                <div
-                  key={pkg.name}
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    padding: '10px 0',
-                    borderBottom: i < arr.length - 1 ? '1px solid var(--glass-border)' : 'none',
-                    fontSize: 14,
-                  }}
-                >
-                  <span>{pkg.name}</span>
-                  <span style={{ opacity: 0.45, fontSize: 13 }}>{pkg.license}</span>
-                </div>
+                'Electron',
+                'React',
+                'Vite',
+                'axios',
+                'yt-dlp-wrap',
+                'electron-store',
+                'date-fns',
+              ].map(name => (
+                <span key={name} className="credits-chip">
+                  <span className="credits-chip-name">{name}</span>
+                  <span className="credits-chip-license">MIT</span>
+                </span>
               ))}
             </div>
 
-            <SectionLabel>Disclaimer</SectionLabel>
-            <div
-              className="glass"
-              style={{
-                borderRadius: 14,
-                padding: '14px 18px',
-                marginBottom: 28,
-                fontSize: 13,
-                opacity: 0.6,
-                lineHeight: 1.6,
-              }}
-            >
-              ScriptStash is an independent third-party application and is not affiliated with,
-              endorsed by, or associated with EroScripts or Discourse. Use of this app is subject to
-              the terms of service of the communities you access through it.
-              <br />
-              <br />
-              ScriptStash does not host, store, or distribute any content. All content is fetched
-              directly from third-party sources. You are solely responsible for ensuring that your
-              use of this application complies with the laws of your country or jurisdiction. The
-              developers of ScriptStash accept no liability for content accessed through this app.
+            <SectionLabel>Legal</SectionLabel>
+            <div className="credits-legal">
+              <div className="credits-legal-head">
+                <Icon name="eye" size={15} />
+                Disclaimer
+              </div>
+              <p>
+                ScriptStash is an independent third-party application and is not affiliated with,
+                endorsed by, or associated with EroScripts or Discourse. Use of this app is subject
+                to the terms of service of the communities you access through it.
+              </p>
+              <p>
+                ScriptStash does not host, store, or distribute any content. All content is fetched
+                directly from third-party sources. You are solely responsible for ensuring that your
+                use of this application complies with the laws of your country or jurisdiction. The
+                developers of ScriptStash accept no liability for content accessed through this app.
+              </p>
+            </div>
+
+            <div className="credits-footer">
+              Made with <Icon name="heart" size={13} className="credits-heart" /> for the community
             </div>
           </div>
         )}
