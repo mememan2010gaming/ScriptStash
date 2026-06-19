@@ -18,7 +18,7 @@ const CONTRIBUTORS = [
     username: 'mememan2010',
     role: 'Creator & Lead Developer',
     github: 'https://github.com/mememan2010gaming',
-    avatar: 'https://github.com/mememan2010gaming.png',
+    avatar: 'https://avatars.githubusercontent.com/mememan2010gaming',
   },
 ]
 
@@ -885,9 +885,7 @@ export default function SettingsView({ activeSection, onSectionChange }) {
                 A native desktop browser and downloader for script communities.
               </p>
               {appVersion && (
-                <span className="credits-version">
-                  <Icon name="sparkle" size={12} />v{appVersion}
-                </span>
+                <span className="credits-version">v{appVersion}</span>
               )}
             </div>
 
