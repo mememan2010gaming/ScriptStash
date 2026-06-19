@@ -9,6 +9,16 @@ const SECTIONS = [
   { id: 'appearance', label: 'Appearance' },
   { id: 'updates', label: 'Updates' },
   { id: 'developer', label: 'Developer', devOnly: true },
+  { id: 'credits', label: 'Credits' },
+]
+
+const CONTRIBUTORS = [
+  {
+    username: 'mememan2010',
+    role: 'Creator & Lead Developer',
+    github: 'https://github.com/mememan2010gaming',
+    avatar: 'https://github.com/mememan2010gaming.png',
+  },
 ]
 
 function Toggle({ checked, onChange }) {
@@ -857,6 +867,81 @@ export default function SettingsView({ activeSection, onSectionChange }) {
                 }
               />
             </Group>
+          </div>
+        )}
+
+        {/* ---- Credits ---- */}
+        {section === 'credits' && (
+          <div className="fade-in">
+            <SectionLabel>Contributors</SectionLabel>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 28 }}>
+              {CONTRIBUTORS.map(c => (
+                <a
+                  key={c.username}
+                  href={c.github}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="glass glass-hover"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 16,
+                    padding: '14px 18px',
+                    borderRadius: 14,
+                    border: '1px solid var(--glass-border)',
+                    textDecoration: 'none',
+                    color: 'inherit',
+                  }}
+                >
+                  <img
+                    src={c.avatar}
+                    alt={c.username}
+                    style={{ width: 44, height: 44, borderRadius: '50%', flexShrink: 0 }}
+                  />
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: 15 }}>{c.username}</div>
+                    <div style={{ fontSize: 13, opacity: 0.55, marginTop: 2 }}>{c.role}</div>
+                  </div>
+                </a>
+              ))}
+            </div>
+
+            <SectionLabel>Built with</SectionLabel>
+            <div className="glass" style={{ borderRadius: 14, padding: '10px 18px', marginBottom: 28 }}>
+              {[
+                { name: 'Electron', license: 'MIT' },
+                { name: 'React', license: 'MIT' },
+                { name: 'Vite', license: 'MIT' },
+                { name: 'axios', license: 'MIT' },
+                { name: 'yt-dlp-wrap', license: 'MIT' },
+                { name: 'electron-store', license: 'MIT' },
+                { name: 'date-fns', license: 'MIT' },
+              ].map((pkg, i, arr) => (
+                <div
+                  key={pkg.name}
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    padding: '10px 0',
+                    borderBottom: i < arr.length - 1 ? '1px solid var(--glass-border)' : 'none',
+                    fontSize: 14,
+                  }}
+                >
+                  <span>{pkg.name}</span>
+                  <span style={{ opacity: 0.45, fontSize: 13 }}>{pkg.license}</span>
+                </div>
+              ))}
+            </div>
+
+            <SectionLabel>Disclaimer</SectionLabel>
+            <div
+              className="glass"
+              style={{ borderRadius: 14, padding: '14px 18px', marginBottom: 28, fontSize: 13, opacity: 0.6, lineHeight: 1.6 }}
+            >
+              ScriptStash is an independent third-party application and is not affiliated with,
+              endorsed by, or associated with EroScripts or Discourse. Use of this app is subject
+              to the terms of service of the communities you access through it.
+            </div>
           </div>
         )}
       </div>
