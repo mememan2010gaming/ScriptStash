@@ -1,15 +1,18 @@
+const path = require('path')
 const { ipcMain } = require('electron')
 const axios = require('axios')
-const { getStreamUrl } = require('../services/stream.service')
+const { downloadVideoToTemp } = require('../services/stream.service')
 const authService = require('../services/auth.service')
 
 function setupPlayerHandlers() {
-  ipcMain.handle('player:get-stream-url', async (_event, videoUrl) => {
+  ipcMain.handle('player:download-video', async (event, videoUrl) => {
     try {
-      const url = await getStreamUrl(videoUrl)
-      return { success: true, data: url }
+      const filePath = await downloadVideoToTemp(videoUrl, percent => {
+        event.sender.send('player:video-progress', percent)
+      })
+      return { success: true, data: path.basename(filePath) }
     } catch (error) {
-      console.error('[stream] Failed to get stream URL:', error.message)
+      console.error('[player] Video download failed:', error.message)
       return { success: false, error: error.message }
     }
   })
@@ -26,7 +29,7 @@ function setupPlayerHandlers() {
       return { success: true, data: response.data }
     } catch (error) {
       const status = error.response?.status
-      console.error('[stream] Failed to fetch funscript:', error.message)
+      console.error('[player] Funscript fetch failed:', error.message)
       return { success: false, error: status ? `HTTP ${status}` : error.message }
     }
   })

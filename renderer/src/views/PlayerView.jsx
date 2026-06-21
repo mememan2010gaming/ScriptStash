@@ -18,8 +18,12 @@ function parseFunscript(json) {
 }
 
 export default function PlayerView({ topic, goBack }) {
-  const [streamUrl, setStreamUrl] = useState(null)
-  const [streamError, setStreamError] = useState(null)
+  // 'idle' | 'downloading' | 'ready' | 'error'
+  const [videoStatus, setVideoStatus] = useState('idle')
+  const [videoProgress, setVideoProgress] = useState(0)
+  const [videoSrc, setVideoSrc] = useState(null)
+  const [videoError, setVideoError] = useState(null)
+
   const [actions, setActions] = useState([])
   const [scriptError, setScriptError] = useState(null)
   const [offsetMs, setOffsetMs] = useState(0)
@@ -34,49 +38,62 @@ export default function PlayerView({ topic, goBack }) {
   const funscripts = topic?.downloads?.funscripts ?? []
   const videos = topic?.downloads?.rankedVideos ?? topic?.downloads?.videos ?? []
 
-  // Keep offsetRef current so the engine reads without closure staleness
   useEffect(() => {
     offsetRef.current = offsetMs
   }, [offsetMs])
 
-  // Fetch stream URL
+  // Download video to temp and funscript in parallel on mount
   useEffect(() => {
     if (!videos[0]?.url) {
-      setStreamError('No video URL found for this topic.')
+      setVideoStatus('error')
+      setVideoError('No video URL found for this topic.')
       return
     }
+
+    setVideoStatus('downloading')
+    setVideoProgress(0)
+
+    window.electronAPI.onVideoProgress(pct => setVideoProgress(pct))
+
     window.electronAPI
-      .getStreamUrl(videos[0].url)
+      .downloadVideo(videos[0].url)
       .then(result => {
-        if (result.success) {
-          setStreamUrl(result.data)
+        window.electronAPI.offVideoProgress()
+        if (!result.success) {
+          setVideoStatus('error')
+          setVideoError(result.error ?? 'Download failed.')
         } else {
-          setStreamError(result.error ?? 'Failed to extract stream URL.')
+          setVideoSrc(`tempfile://local/${result.data}`)
+          setVideoStatus('ready')
         }
       })
-      .catch(e => setStreamError(e.message))
-  }, [videos[0]?.url])
-
-  // Fetch funscript
-  useEffect(() => {
-    if (!funscripts[0]?.url) {
-      setScriptError('No funscript URL found.')
-      return
-    }
-    window.electronAPI
-      .fetchFunscript(funscripts[0].url)
-      .then(result => {
-        if (!result.success) throw new Error(result.error ?? 'Failed to fetch funscript')
-        const parsed = parseFunscript(result.data)
-        setActions(parsed.actions)
+      .catch(e => {
+        window.electronAPI.offVideoProgress()
+        setVideoStatus('error')
+        setVideoError(e.message)
       })
-      .catch(e => setScriptError(`Failed to load script: ${e.message}`))
-  }, [funscripts[0]?.url])
 
-  // Start/restart engine when actions change or video URL loads
+    if (funscripts[0]?.url) {
+      window.electronAPI
+        .fetchFunscript(funscripts[0].url)
+        .then(result => {
+          if (!result.success) throw new Error(result.error ?? 'Failed to fetch funscript')
+          setActions(parseFunscript(result.data).actions)
+        })
+        .catch(e => setScriptError(`Failed to load script: ${e.message}`))
+    } else {
+      setScriptError('No funscript URL found.')
+    }
+
+    return () => {
+      window.electronAPI.offVideoProgress()
+    }
+  }, [])
+
+  // Start/restart engine when both video and actions are ready
   useEffect(() => {
     const video = videoRef.current
-    if (!video || actions.length === 0) return
+    if (!video || actions.length === 0 || videoStatus !== 'ready') return
 
     engineRef.current?.stop()
     const engine = createScriptEngine({
@@ -89,14 +106,13 @@ export default function PlayerView({ topic, goBack }) {
     engine.start()
 
     return () => engine.stop()
-  }, [actions, streamUrl])
+  }, [actions, videoStatus])
 
-  // Reset engine cursor when user seeks
   const handleSeeked = useCallback(() => {
     engineRef.current?.seek()
   }, [])
 
-  // RAF display ticker — drives the timeline canvas
+  // RAF display ticker for timeline
   useEffect(() => {
     function displayTick() {
       const video = videoRef.current
@@ -109,7 +125,6 @@ export default function PlayerView({ topic, goBack }) {
     }
   }, [])
 
-  // Wire seeked event to engine
   useEffect(() => {
     const video = videoRef.current
     if (!video) return
@@ -123,8 +138,7 @@ export default function PlayerView({ topic, goBack }) {
     const reader = new FileReader()
     reader.onload = ev => {
       try {
-        const parsed = parseFunscript(ev.target.result)
-        setActions(parsed.actions)
+        setActions(parseFunscript(ev.target.result).actions)
         setScriptError(null)
       } catch (err) {
         setScriptError(`Could not parse file: ${err.message}`)
@@ -178,8 +192,50 @@ export default function PlayerView({ topic, goBack }) {
         <IntifacePanel onDevicesChange={list => (devicesRef.current = list)} />
       </div>
 
-      {/* Video */}
-      {streamError ? (
+      {/* Video / download progress */}
+      {videoStatus === 'downloading' && (
+        <div
+          style={{
+            padding: '20px 16px',
+            borderRadius: 10,
+            border: '1px solid var(--glass-border)',
+            background: 'rgba(255,255,255,0.03)',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              fontSize: 12.5,
+              color: 'var(--text-faint)',
+              marginBottom: 10,
+            }}
+          >
+            <span>Downloading video…</span>
+            <span>{videoProgress}%</span>
+          </div>
+          <div
+            style={{
+              height: 6,
+              borderRadius: 3,
+              background: 'rgba(255,255,255,0.08)',
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                height: '100%',
+                width: `${videoProgress}%`,
+                background: '#6c8eff',
+                borderRadius: 3,
+                transition: 'width 0.3s ease',
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {videoStatus === 'error' && (
         <div
           style={{
             padding: 16,
@@ -190,7 +246,7 @@ export default function PlayerView({ topic, goBack }) {
         >
           <div style={{ fontWeight: 600, marginBottom: 6 }}>Could not load video</div>
           <div style={{ fontSize: 12.5, color: 'var(--text-faint)', wordBreak: 'break-all' }}>
-            {streamError}
+            {videoError}
           </div>
           {videos[0]?.url && (
             <div style={{ marginTop: 8, fontSize: 11.5, color: 'var(--text-faint)' }}>
@@ -198,12 +254,10 @@ export default function PlayerView({ topic, goBack }) {
             </div>
           )}
         </div>
-      ) : (
-        <VideoPlayer
-          streamUrl={streamUrl}
-          videoRef={videoRef}
-          onError={msg => setStreamError(msg)}
-        />
+      )}
+
+      {videoStatus === 'ready' && (
+        <VideoPlayer streamUrl={videoSrc} videoRef={videoRef} onError={msg => setVideoError(msg)} />
       )}
 
       {/* Timeline */}

@@ -40,8 +40,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   updateYtDlp: () => ipcRenderer.invoke('update-ytdlp'),
 
   // Player
-  getStreamUrl: url => ipcRenderer.invoke('player:get-stream-url', url),
+  downloadVideo: url => ipcRenderer.invoke('player:download-video', url),
   fetchFunscript: url => ipcRenderer.invoke('player:fetch-funscript', url),
+  onVideoProgress: cb => ipcRenderer.on('player:video-progress', (_e, pct) => cb(pct)),
+  offVideoProgress: () => ipcRenderer.removeAllListeners('player:video-progress'),
 
   // Settings
   invoke: (channel, data) => ipcRenderer.invoke(channel, data),
