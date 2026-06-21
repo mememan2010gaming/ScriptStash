@@ -5,6 +5,7 @@ import Titlebar from './Titlebar'
 import Sidebar from './Sidebar'
 import TopicsView from '../views/TopicsView'
 import TopicDetail from '../views/TopicDetail'
+import PlayerView from '../views/PlayerView'
 import SearchView from '../views/SearchView'
 import DownloadsView from '../views/DownloadsView'
 import SettingsView from '../views/SettingsView'
@@ -16,6 +17,8 @@ function ViewContent(props) {
   switch (currentView) {
     case 'topics':
       return <TopicsView key={currentCategory} category={currentCategory} navigateTo={navigateTo} />
+    case 'player':
+      return <PlayerView topic={props.playerTopic} goBack={goBack} />
     case 'detail':
       return <TopicDetail topicId={selectedTopicId} navigateTo={navigateTo} goBack={goBack} />
     case 'search':

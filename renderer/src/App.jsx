@@ -15,6 +15,7 @@ function AppInner() {
   const [selectedTopicId, setSelectedTopicId] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [settingsSection, setSettingsSection] = useState('general')
+  const [playerTopic, setPlayerTopic] = useState(null)
 
   const history = useRef([snap('topics', 'free', null, '')])
   const cursor = useRef(0)
@@ -39,6 +40,7 @@ function AppInner() {
       if (options.category !== undefined) setCurrentCategory(options.category)
       if (options.topicId !== undefined) setSelectedTopicId(options.topicId)
       if (options.query !== undefined) setSearchQuery(options.query)
+      if (options.topic !== undefined) setPlayerTopic(options.topic)
       if (options.settingsSection !== undefined) setSettingsSection(options.settingsSection)
 
       if (navigating.current) return
@@ -129,6 +131,7 @@ function AppInner() {
         goBack={goBack}
         settingsSection={settingsSection}
         setSettingsSection={setSettingsSection}
+        playerTopic={playerTopic}
       />
       <ToastContainer />
       <UpdateNotification />

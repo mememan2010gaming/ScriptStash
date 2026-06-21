@@ -1,7 +1,7 @@
 {
   "name": "scriptstash",
   "productName": "ScriptStash",
-  "version": "2.4.20",
+  "version": "2.4.22",
   "description": "Third-party browser and organizer for script communities",
   "main": "main/index.js",
   "repository": {
@@ -84,6 +84,7 @@
     "@distube/ytdl-core": "^4.16.12",
     "animejs": "^4.4.1",
     "axios": "^1.13.2",
+    "buttplug": "^5.0.1",
     "cheerio": "^1.0.0-rc.12",
     "dompurify": "^3.0.6",
     "electron-squirrel-startup": "^1.0.1",

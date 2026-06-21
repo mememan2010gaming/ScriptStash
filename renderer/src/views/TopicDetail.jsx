@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { formatDate } from '../utils/formatters'
 import MegaFolderPicker from '../components/MegaFolderPicker'
 import { useDownloads } from '../contexts/DownloadContext'
 import { useToast } from '../contexts/ToastContext'
@@ -198,7 +199,7 @@ function CommentItem({ comment }) {
           {comment.username}
         </span>
         <span style={{ fontSize: 11.5, color: 'var(--text-faint)' }}>
-          {comment.createdAt ? new Date(comment.createdAt).toLocaleDateString() : ''}
+          {comment.createdAt ? formatDate(comment.createdAt) : ''}
         </span>
         {hasVideo && (
           <span
@@ -224,7 +225,7 @@ function CommentItem({ comment }) {
   )
 }
 
-function RightPanel({ topic }) {
+function RightPanel({ topic, navigateTo }) {
   const { downloadFile } = useDownloads()
   const { addToast } = useToast()
   const [progress, setProgress] = useState({})
@@ -235,6 +236,7 @@ function RightPanel({ topic }) {
 
   const funscripts = topic.downloads?.funscripts || []
   const rankedVideos = topic.downloads?.rankedVideos || topic.downloads?.videos || []
+  const canPlay = funscripts.length > 0 && rankedVideos.length > 0
 
   useEffect(() => {
     setVerified({})
@@ -309,6 +311,28 @@ function RightPanel({ topic }) {
         background: 'rgba(255,255,255,0.02)',
       }}
     >
+      {canPlay && navigateTo && (
+        <button
+          onClick={() => navigateTo('player', { topic })}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 7,
+            width: '100%',
+            padding: '10px 0',
+            borderRadius: 10,
+            border: 'none',
+            background: '#6c8eff',
+            color: '#fff',
+            fontWeight: 700,
+            fontSize: 13,
+            cursor: 'pointer',
+          }}
+        >
+          ▶ Play
+        </button>
+      )}
       <Panel title="Scripts">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
           {funscripts.length ? (
@@ -626,7 +650,7 @@ function ReplyBox({ topicId, onReply }) {
   )
 }
 
-export default function TopicDetail({ topicId, goBack }) {
+export default function TopicDetail({ topicId, goBack, navigateTo }) {
   const [topic, setTopic] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -905,7 +929,7 @@ export default function TopicDetail({ topicId, goBack }) {
         <ReplyBox topicId={topic.id} onReply={loadTopic} />
       </div>
 
-      <RightPanel topic={topic} />
+      <RightPanel topic={topic} navigateTo={navigateTo} />
     </div>
   )
 }
