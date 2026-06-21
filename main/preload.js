@@ -39,6 +39,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getYtDlpVersion: () => ipcRenderer.invoke('get-ytdlp-version'),
   updateYtDlp: () => ipcRenderer.invoke('update-ytdlp'),
 
+  // Player
+  getStreamUrl: url => ipcRenderer.invoke('player:get-stream-url', url),
+
   // Settings
   invoke: (channel, data) => ipcRenderer.invoke(channel, data),
   getSettings: () => ipcRenderer.invoke('get-settings'),
