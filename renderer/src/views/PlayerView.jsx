@@ -4,8 +4,18 @@ import VideoPlayer from '../components/player/VideoPlayer'
 import ScriptTimeline from '../components/player/ScriptTimeline'
 import OffsetControl from '../components/player/OffsetControl'
 import IntifacePanel from '../components/player/IntifacePanel'
-import { parseFunscript } from '../services/funscript-parser.js'
 import { createScriptEngine } from '../services/script-engine.js'
+
+function parseFunscript(json) {
+  const file = JSON.parse(json)
+  if (!Array.isArray(file.actions)) throw new Error('funscript has no actions array')
+  return {
+    actions: file.actions
+      .filter(a => typeof a.at === 'number' && a.at >= 0)
+      .map(a => ({ at: Math.round(a.at), pos: Math.max(0, Math.min(99, Math.round(a.pos ?? 0))) }))
+      .sort((a, b) => a.at - b.at),
+  }
+}
 
 export default function PlayerView({ topic, goBack }) {
   const [streamUrl, setStreamUrl] = useState(null)
