@@ -1,11 +1,15 @@
-const YTDlpWrap = require('yt-dlp-wrap')
+const YTDlpWrap = require('yt-dlp-wrap').default
+
+let ytDlp = null
 
 async function getStreamUrl(videoUrl) {
-  let ytDlp
-  try {
-    ytDlp = new YTDlpWrap()
-  } catch {
-    throw new Error('yt-dlp is not available')
+  if (!ytDlp) {
+    try {
+      ytDlp = new YTDlpWrap()
+    } catch {
+      await YTDlpWrap.downloadFromGithub()
+      ytDlp = new YTDlpWrap()
+    }
   }
 
   const output = await ytDlp.execPromise([

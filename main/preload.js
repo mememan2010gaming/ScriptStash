@@ -41,6 +41,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Player
   getStreamUrl: url => ipcRenderer.invoke('player:get-stream-url', url),
+  fetchFunscript: url => ipcRenderer.invoke('player:fetch-funscript', url),
 
   // Settings
   invoke: (channel, data) => ipcRenderer.invoke(channel, data),

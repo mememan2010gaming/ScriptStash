@@ -63,13 +63,11 @@ export default function PlayerView({ topic, goBack }) {
       setScriptError('No funscript URL found.')
       return
     }
-    fetch(funscripts[0].url)
-      .then(r => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`)
-        return r.text()
-      })
-      .then(text => {
-        const parsed = parseFunscript(text)
+    window.electronAPI
+      .fetchFunscript(funscripts[0].url)
+      .then(result => {
+        if (!result.success) throw new Error(result.error ?? 'Failed to fetch funscript')
+        const parsed = parseFunscript(result.data)
         setActions(parsed.actions)
       })
       .catch(e => setScriptError(`Failed to load script: ${e.message}`))
