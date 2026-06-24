@@ -620,7 +620,7 @@ Paginated notification list.
   "notifications": [...],
   "total_rows_notifications": 716,
   "seen_notification_id": 12345,
-  "load_more_notifications": "/notifications?filter=all&limit=30&offset=30&username=mememan2010"
+  "load_more_notifications": "/notifications?filter=all&limit=30&offset=30&username=whoever"
 }
 ```
 

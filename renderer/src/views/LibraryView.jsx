@@ -5,7 +5,7 @@ import Icon from '../design-system/components/Icon'
 const thumbCache = new Map()
 
 // Build a safe localfile:/// URL.
-// Double-slash URLs (localfile://F:/path) make the URL parser treat "F" as the
+// Double-slash URLs (localfile://C:/path) make the URL parser treat "C" as the
 // hostname. Triple-slash puts the full path in pathname where it belongs.
 // encodeURIComponent handles spaces, brackets, apostrophes, etc.
 function toLocalUrl(absPath) {
@@ -14,7 +14,7 @@ function toLocalUrl(absPath) {
     .split('/')
     .map(seg => encodeURIComponent(seg))
     .join('/')
-    // Restore "F:" drive letter — encodeURIComponent turns "F:" into "F%3A"
+    // Restore "C:" drive letter — encodeURIComponent turns "C:" into "C%3A"
     .replace(/^([A-Za-z])%3A\//, '$1:/')
   return `localfile:///${encoded}`
 }
