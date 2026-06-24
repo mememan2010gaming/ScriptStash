@@ -5,6 +5,9 @@ import Skeleton from '../design-system/components/Skeleton'
 
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
+// Persists scroll positions across category/tab switches without prop-drilling
+const scrollPositions = {}
+
 const TABS = [
   { id: 'latest', label: 'Latest' },
   { id: 'top', label: 'Top' },
@@ -397,10 +400,12 @@ export default function TopicsView({ category, navigateTo }) {
   const [searchResults, setSearchResults] = useState(null)
   const [searchLoading, setSearchLoading] = useState(false)
   const gridRef = useRef(null)
+  const scrollRef = useRef(null)
   const sentinelRef = useRef(null)
   const seenPages = useRef(new Set())
   const searchTimer = useRef(null)
   const prefetchCache = useRef({}) // key: `${sort}:${page}` → topics[]
+  const scrollKey = `${category}:${tab}`
 
   const doFetch = useCallback(
     async (p, sort) => {
@@ -463,6 +468,17 @@ export default function TopicsView({ category, navigateTo }) {
     [category, doFetch, prefetch]
   )
 
+  // Save scroll position when leaving, restore when returning to same key
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+    const saved = scrollPositions[scrollKey]
+    if (saved != null) el.scrollTop = saved
+    return () => {
+      scrollPositions[scrollKey] = scrollRef.current?.scrollTop ?? 0
+    }
+  }, [scrollKey])
+
   useEffect(() => {
     seenPages.current.clear()
     prefetchCache.current = {}
@@ -474,23 +490,43 @@ export default function TopicsView({ category, navigateTo }) {
     fetchTopics(0, true, tab)
   }, [category, tab])
 
+  // Parse negative tags from search string: (-foo) or -foo tokens
+  const parseSearch = raw => {
+    const negTags = []
+    const cleaned = raw
+      .replace(/\(-([^)]+)\)|-([^\s]+)/g, (_, a, b) => {
+        negTags.push((a || b).toLowerCase())
+        return ''
+      })
+      .replace(/\s+/g, ' ')
+      .trim()
+    return { query: cleaned, negTags }
+  }
+
+  const { query: cleanQuery, negTags } = parseSearch(search)
+
   // Debounced search via the real search endpoint
   useEffect(() => {
     clearTimeout(searchTimer.current)
-    if (!search.trim()) {
+    if (!cleanQuery && negTags.length === 0) {
       setSearchResults(null)
       return
     }
     searchTimer.current = setTimeout(async () => {
       setSearchLoading(true)
       try {
-        const res = await window.electronAPI?.searchTopics?.(search.trim(), 0)
-        if (res?.success) setSearchResults(res.data?.topics || [])
+        if (cleanQuery) {
+          const res = await window.electronAPI?.searchTopics?.(cleanQuery, 0)
+          if (res?.success) setSearchResults(res.data?.topics || [])
+        } else {
+          // No positive query — apply neg-tag filter on loaded topics
+          setSearchResults(null)
+        }
       } catch {}
       setSearchLoading(false)
     }, 400)
     return () => clearTimeout(searchTimer.current)
-  }, [search])
+  }, [search]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!sentinelRef.current) return
@@ -505,7 +541,16 @@ export default function TopicsView({ category, navigateTo }) {
     return () => obs.disconnect()
   }, [hasMore, loading, loadingMore, page, tab, fetchTopics, search])
 
-  const filtered = searchResults ?? topics
+  const baseList = searchResults ?? topics
+  const filtered =
+    negTags.length === 0
+      ? baseList
+      : baseList.filter(t => {
+          const topicTags = (t.tags || []).map(tag =>
+            (typeof tag === 'string' ? tag : tag?.name ?? '').toLowerCase()
+          )
+          return !negTags.some(neg => topicTags.includes(neg))
+        })
 
   // Staggered entrance for new cards (transform-only, never gates visibility)
   useEffect(() => {
@@ -549,7 +594,7 @@ export default function TopicsView({ category, navigateTo }) {
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Filter this library…"
+            placeholder="Filter this library… use -tag to exclude"
             className="glass"
             style={{
               width: '100%',
@@ -564,6 +609,33 @@ export default function TopicsView({ category, navigateTo }) {
             onFocus={e => (e.target.style.borderColor = 'var(--accent)')}
             onBlur={e => (e.target.style.borderColor = 'var(--glass-border)')}
           />
+          {negTags.length > 0 && (
+            <div
+              style={{
+                display: 'flex',
+                gap: 5,
+                flexWrap: 'wrap',
+                marginTop: 8,
+              }}
+            >
+              {negTags.map(tag => (
+                <span
+                  key={tag}
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    padding: '3px 9px',
+                    borderRadius: 99,
+                    background: 'rgba(239,68,68,0.15)',
+                    border: '1px solid rgba(239,68,68,0.4)',
+                    color: '#ef4444',
+                  }}
+                >
+                  –{tag}
+                </span>
+              ))}
+            </div>
+          )}
           {(searchLoading || topics.length > 0) && (
             <span
               style={{
@@ -587,7 +659,7 @@ export default function TopicsView({ category, navigateTo }) {
         </div>
       </ViewHeader>
 
-      <div style={{ flex: 1, overflow: 'auto', padding: '6px 30px 32px' }}>
+      <div ref={scrollRef} style={{ flex: 1, overflow: 'auto', padding: '6px 30px 32px' }}>
         {loading ? (
           <div
             style={{

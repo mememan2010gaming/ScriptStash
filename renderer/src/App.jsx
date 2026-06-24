@@ -16,6 +16,7 @@ function AppInner() {
   const [searchQuery, setSearchQuery] = useState('')
   const [settingsSection, setSettingsSection] = useState('general')
   const [playerTopic, setPlayerTopic] = useState(null)
+  const [playerLocalFile, setPlayerLocalFile] = useState(null)
 
   const history = useRef([snap('topics', 'free', null, '')])
   const cursor = useRef(0)
@@ -41,6 +42,7 @@ function AppInner() {
       if (options.topicId !== undefined) setSelectedTopicId(options.topicId)
       if (options.query !== undefined) setSearchQuery(options.query)
       if (options.topic !== undefined) setPlayerTopic(options.topic)
+      if (options.localFile !== undefined) setPlayerLocalFile(options.localFile)
       if (options.settingsSection !== undefined) setSettingsSection(options.settingsSection)
 
       if (navigating.current) return
@@ -132,6 +134,7 @@ function AppInner() {
         settingsSection={settingsSection}
         setSettingsSection={setSettingsSection}
         playerTopic={playerTopic}
+        playerLocalFile={playerLocalFile}
       />
       <ToastContainer />
       <UpdateNotification />

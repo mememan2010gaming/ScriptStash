@@ -24,6 +24,8 @@ const PATHS = {
   close: 'M18 6L6 18 M6 6l12 12',
   square: 'M5 5h14v14H5z',
   bell: 'M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9 M13.73 21a2 2 0 0 1-3.46 0',
+  play: 'M5 3l14 9-14 9V3z',
+  film: 'M2 2h20v20H2z M7 2v20 M17 2v20 M2 12h20 M2 7h5 M2 17h5 M17 17h5 M17 7h5',
 }
 
 export default function Icon({ name, size = 18, stroke = 1.8, fill = 'none', style, className }) {

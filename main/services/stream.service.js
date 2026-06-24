@@ -62,8 +62,8 @@ async function downloadVideoToTemp(videoUrl, onProgress) {
         const mergeMatch = trimmed.match(/\[Merger\] Merging formats into "(.+)"/)
         if (mergeMatch) resolvedPath = mergeMatch[1].trim()
 
-        const pctMatch = trimmed.match(/\[download\]\s+(\d+\.?\d*)%/)
-        if (pctMatch) onProgress(Math.round(parseFloat(pctMatch[1])))
+        const pctMatch = trimmed.match(/\[download\]\s+(\d+\.?\d*)%(?:.*ETA\s+(\S+))?/)
+        if (pctMatch) onProgress(Math.round(parseFloat(pctMatch[1])), pctMatch[2] ?? null)
       }
     })
 

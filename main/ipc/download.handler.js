@@ -17,6 +17,18 @@ function setupDownloadHandlers() {
     }
   })
 
+  ipcMain.handle('download-paired', async (event, { videoUrl, funscriptUrl, topicTitle }) => {
+    try {
+      const window = BrowserWindow.fromWebContents(event.sender) || getMainWindow()
+      const downloadId = `paired-${Date.now()}`
+      await downloadService.downloadPaired(videoUrl, funscriptUrl, topicTitle, window, downloadId)
+      return { success: true }
+    } catch (error) {
+      console.error('Error in paired download:', error.message)
+      return { success: false, error: error.message }
+    }
+  })
+
   ipcMain.handle('mega:get-folder-files', async (event, { url }) => {
     try {
       const { File: MegaFile } = require('megajs')
@@ -166,6 +178,61 @@ function setupDownloadHandlers() {
     } catch (error) {
       return { success: false, error: error.message }
     }
+  })
+
+  /**
+   * Recursively scan download directory for video+funscript pairs
+   */
+  ipcMain.handle('scan-library', async () => {
+    const fs = require('fs')
+    const path = require('path')
+    const VIDEO_EXTS = new Set(['.mp4', '.mkv', '.webm', '.avi', '.mov', '.m4v'])
+
+    function walk(dir, pairs = []) {
+      let entries
+      try { entries = fs.readdirSync(dir, { withFileTypes: true }) } catch { return pairs }
+      const byBasename = {}
+      for (const e of entries) {
+        if (e.isDirectory()) { walk(path.join(dir, e.name), pairs); continue }
+        const ext = path.extname(e.name).toLowerCase()
+        const base = path.basename(e.name, ext)
+        if (!byBasename[base]) byBasename[base] = {}
+        if (VIDEO_EXTS.has(ext)) byBasename[base].video = path.join(dir, e.name)
+        if (ext === '.funscript') byBasename[base].funscript = path.join(dir, e.name)
+      }
+      for (const [base, files] of Object.entries(byBasename)) {
+        if (files.video || files.funscript) {
+          pairs.push({
+            title: base,
+            video: files.video || null,
+            funscript: files.funscript || null,
+            dir,
+          })
+        }
+      }
+      return pairs
+    }
+
+    try {
+      const dlPath = downloadService.getDownloadPath()
+      const pairs = walk(dlPath).sort((a, b) => a.title.localeCompare(b.title))
+      return { success: true, data: pairs }
+    } catch (error) {
+      return { success: false, error: error.message }
+    }
+  })
+
+  /**
+   * Open a file picker and return the selected path
+   */
+  ipcMain.handle('pick-local-file', async (event, { filters }) => {
+    const window = BrowserWindow.fromWebContents(event.sender)
+    const result = await dialog.showOpenDialog(window, {
+      properties: ['openFile'],
+      filters: filters || [],
+    })
+    if (result.canceled || !result.filePaths.length) return { success: false }
+    return { success: true, data: result.filePaths[0] }
   })
 }
 

@@ -7,8 +7,8 @@ const authService = require('../services/auth.service')
 function setupPlayerHandlers() {
   ipcMain.handle('player:download-video', async (event, videoUrl) => {
     try {
-      const filePath = await downloadVideoToTemp(videoUrl, percent => {
-        event.sender.send('player:video-progress', percent)
+      const filePath = await downloadVideoToTemp(videoUrl, (percent, eta) => {
+        event.sender.send('player:video-progress', percent, eta)
       })
       return { success: true, data: path.basename(filePath) }
     } catch (error) {

@@ -10,6 +10,7 @@ import SearchView from '../views/SearchView'
 import DownloadsView from '../views/DownloadsView'
 import SettingsView from '../views/SettingsView'
 import NotificationsView from '../views/NotificationsView'
+import LibraryView from '../views/LibraryView'
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 function ViewContent(props) {
@@ -18,7 +19,9 @@ function ViewContent(props) {
     case 'topics':
       return <TopicsView key={currentCategory} category={currentCategory} navigateTo={navigateTo} />
     case 'player':
-      return <PlayerView topic={props.playerTopic} goBack={goBack} />
+      return <PlayerView topic={props.playerTopic} localFile={props.playerLocalFile} goBack={goBack} />
+    case 'library':
+      return <LibraryView navigateTo={navigateTo} />
     case 'detail':
       return <TopicDetail topicId={selectedTopicId} navigateTo={navigateTo} goBack={goBack} />
     case 'search':

@@ -21,6 +21,7 @@ const path = require('path')
 // Must be called before app is ready
 protocol.registerSchemesAsPrivileged([
   { scheme: 'tempfile', privileges: { secure: true, supportFetchAPI: true, stream: true } },
+  { scheme: 'localfile', privileges: { secure: true, supportFetchAPI: true, stream: true } },
 ])
 
 if (require('electron-squirrel-startup')) {
@@ -47,6 +48,24 @@ async function initialize() {
     const filename = decodeURIComponent(new URL(request.url).pathname.slice(1))
     const filePath = require('path').join(getTempDir(), filename)
     return net.fetch(pathToFileURL(filePath).toString())
+  })
+
+  // Serve arbitrary local files to the renderer via localfile://<absolute-path>
+  protocol.handle('localfile', request => {
+    const raw = decodeURIComponent(new URL(request.url).pathname)
+    // On Windows paths come in as /C:/foo/bar — strip the leading slash
+    const filePath = process.platform === 'win32' ? raw.replace(/^\//, '') : raw
+    return net.fetch(pathToFileURL(filePath).toString())
+  })
+
+  // IPC: read a local file as text (used by LibraryView to parse funscripts)
+  ipcMain.handle('read-local-file', async (_event, { filePath }) => {
+    try {
+      const text = fs.readFileSync(filePath, 'utf8')
+      return { success: true, data: text }
+    } catch (error) {
+      return { success: false, error: error.message }
+    }
   })
 
   app.on('will-quit', () => {

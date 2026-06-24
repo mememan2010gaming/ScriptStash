@@ -34,7 +34,14 @@ class NotificationsService {
 
   async markRead() {
     const headers = authService.getAuthHeaders()
-    await axios.put(`${BASE_URL}/notifications/mark-read.json`, {}, { headers })
+    const csrfToken = await authService.getCsrfToken()
+    await axios.put(
+      `${BASE_URL}/notifications/mark-read.json`,
+      {},
+      {
+        headers: { ...headers, 'X-CSRF-Token': csrfToken },
+      }
+    )
     this._notifications = this._notifications.map(n => ({ ...n, read: true }))
     this._unreadCount = 0
     this._pushUpdate()

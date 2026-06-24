@@ -17,10 +17,11 @@ function parseFunscript(json) {
   }
 }
 
-export default function PlayerView({ topic, goBack }) {
+export default function PlayerView({ topic, localFile, goBack }) {
   // 'idle' | 'downloading' | 'ready' | 'error'
   const [videoStatus, setVideoStatus] = useState('idle')
   const [videoProgress, setVideoProgress] = useState(0)
+  const [videoEta, setVideoEta] = useState(null)
   const [videoSrc, setVideoSrc] = useState(null)
   const [videoError, setVideoError] = useState(null)
 
@@ -44,6 +45,23 @@ export default function PlayerView({ topic, goBack }) {
 
   // Download video to temp and funscript in parallel on mount
   useEffect(() => {
+    // Local file mode — no downloads needed
+    if (localFile) {
+      if (localFile.videoSrc) {
+        setVideoSrc(localFile.videoSrc)
+        setVideoStatus('ready')
+      } else {
+        setVideoStatus('error')
+        setVideoError('No video file for this entry.')
+      }
+      if (localFile.actions?.length) {
+        setActions(localFile.actions)
+      } else {
+        setScriptError('No funscript found for this entry.')
+      }
+      return
+    }
+
     if (!videos[0]?.url) {
       setVideoStatus('error')
       setVideoError('No video URL found for this topic.')
@@ -53,7 +71,10 @@ export default function PlayerView({ topic, goBack }) {
     setVideoStatus('downloading')
     setVideoProgress(0)
 
-    window.electronAPI.onVideoProgress(pct => setVideoProgress(pct))
+    window.electronAPI.onVideoProgress((pct, eta) => {
+      setVideoProgress(pct)
+      setVideoEta(eta ?? null)
+    })
 
     window.electronAPI
       .downloadVideo(videos[0].url)
@@ -187,7 +208,7 @@ export default function PlayerView({ topic, goBack }) {
             margin: '0 16px',
           }}
         >
-          {topic?.title ?? ''}
+          {localFile?.title ?? topic?.title ?? ''}
         </div>
         <IntifacePanel onDevicesChange={list => (devicesRef.current = list)} />
       </div>
@@ -212,7 +233,9 @@ export default function PlayerView({ topic, goBack }) {
             }}
           >
             <span>Downloading video…</span>
-            <span>{videoProgress}%</span>
+            <span>
+              {videoProgress}%{videoEta ? ` · ETA ${videoEta}` : ''}
+            </span>
           </div>
           <div
             style={{

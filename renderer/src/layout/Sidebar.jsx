@@ -10,6 +10,7 @@ const NAV = [
   { id: 'search', view: 'search', label: 'Search', icon: 'search' },
   { id: 'downloads', view: 'downloads', label: 'Downloads', icon: 'download' },
   { id: 'notifications', view: 'notifications', label: 'Notifications', icon: 'bell' },
+  { id: 'library', view: 'library', label: 'Script Player', icon: 'play' },
 ]
 
 const ITEM_H = 46

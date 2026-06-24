@@ -124,3 +124,8 @@ local.config.js
 .headroom
 .serena
 docs/
+
+# Playwright E2E tests (local only)
+e2e/
+playwright-report/
+test-results/

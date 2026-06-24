@@ -31,6 +31,7 @@ class AuthService {
    */
   async clearSession() {
     this.cookies = null
+    this._csrfToken = null
     store.delete('cookies')
   }
 
@@ -101,6 +102,24 @@ class AuthService {
 
       return false
     }
+  }
+
+  /**
+   * Fetch and cache the Discourse CSRF token required for POST/PUT/DELETE requests.
+   * The token is stable for the lifetime of a session; clear it on logout.
+   */
+  async getCsrfToken() {
+    if (this._csrfToken) return this._csrfToken
+    const response = await axios.get(`${BASE_URL}/session/csrf.json`, {
+      headers: this.getAuthHeaders(),
+      timeout: 10000,
+    })
+    this._csrfToken = response.data.csrf
+    return this._csrfToken
+  }
+
+  clearCsrfToken() {
+    this._csrfToken = null
   }
 
   /**
