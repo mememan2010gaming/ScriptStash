@@ -58,12 +58,13 @@ lerna-debug.log*
 # Playwright
 .playwright-mcp/
 
-# Tooling / AI IDE config (not project-specific)
+# Tooling
 .codegraph/
 .cursor/
 .superpowers/
 .docs/superpowers/
 CLAUDE.md
+.github/hooks/impeccable.json
 
 # Screenshot artifacts
 /*.png
@@ -129,3 +130,4 @@ docs/
 e2e/
 playwright-report/
 test-results/
+playwright.config.js
