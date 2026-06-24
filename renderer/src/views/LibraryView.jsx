@@ -4,6 +4,21 @@ import Icon from '../design-system/components/Icon'
 // Session-level cache so thumbnails survive sort/search changes without re-extracting
 const thumbCache = new Map()
 
+// Build a safe localfile:/// URL.
+// Double-slash URLs (localfile://F:/path) make the URL parser treat "F" as the
+// hostname. Triple-slash puts the full path in pathname where it belongs.
+// encodeURIComponent handles spaces, brackets, apostrophes, etc.
+function toLocalUrl(absPath) {
+  const encoded = absPath
+    .replace(/\\/g, '/')
+    .split('/')
+    .map(seg => encodeURIComponent(seg))
+    .join('/')
+    // Restore "F:" drive letter — encodeURIComponent turns "F:" into "F%3A"
+    .replace(/^([A-Za-z])%3A\//, '$1:/')
+  return `localfile:///${encoded}`
+}
+
 function parseFunscript(text) {
   const file = JSON.parse(text)
   if (!Array.isArray(file.actions)) throw new Error('no actions array')
@@ -104,7 +119,7 @@ function Heatmap({ data }) {
 function PairCard({ pair, onOpen }) {
   const hasVideo = !!pair.video
   const hasScript = !!pair.funscript
-  const videoSrc = hasVideo ? `localfile://${pair.video.replace(/\\/g, '/')}` : null
+  const videoSrc = hasVideo ? toLocalUrl(pair.video) : null
 
   const [thumb, setThumb] = useState(() => (videoSrc ? (thumbCache.get(videoSrc) ?? null) : null))
   const cardRef = useRef(null)
@@ -336,7 +351,7 @@ export default function LibraryView({ navigateTo }) {
   const openLocalPair = async pair => {
     let videoSrc = null
     let actions = []
-    if (pair.video) videoSrc = `localfile://${pair.video.replace(/\\/g, '/')}`
+    if (pair.video) videoSrc = toLocalUrl(pair.video)
     if (pair.funscript) {
       try {
         const r = await window.electronAPI?.readLocalFile?.(pair.funscript)
@@ -370,7 +385,7 @@ export default function LibraryView({ navigateTo }) {
 
     let videoSrc = null
     let actions = []
-    if (videoFilePath) videoSrc = `localfile://${videoFilePath.replace(/\\/g, '/')}`
+    if (videoFilePath) videoSrc = toLocalUrl(videoFilePath)
     if (scriptFilePath) {
       try {
         const r = await window.electronAPI?.readLocalFile?.(scriptFilePath)
