@@ -233,18 +233,6 @@ export default function SearchView({ navigateTo }) {
           borderBottom: '1px solid var(--glass-border)',
         }}
       >
-        <div
-          style={{
-            fontSize: 11.5,
-            fontWeight: 700,
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
-            color: 'var(--accent-2)',
-            marginBottom: 6,
-          }}
-        >
-          Find anything
-        </div>
         <h1
           className="display"
           style={{

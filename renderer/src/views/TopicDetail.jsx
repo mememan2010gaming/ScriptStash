@@ -5,6 +5,7 @@ import { useDownloads } from '../contexts/DownloadContext'
 import { useToast } from '../contexts/ToastContext'
 import { useIpcListener } from '../hooks/useIpc'
 import Icon from '../design-system/components/Icon'
+import Button from '../design-system/components/Button'
 import CountUp from '../design-system/components/CountUp'
 import Skeleton from '../design-system/components/Skeleton'
 import ProgressBar from '../design-system/components/ProgressBar'
@@ -54,16 +55,14 @@ function useLiquidGlass() {
   return { ref, onMouseMove }
 }
 
-function Panel({ title, children }) {
+function Panel({ title, children, first }) {
   return (
-    <div>
+    <div style={first ? undefined : { borderTop: '1px solid var(--glass-border)', paddingTop: 20 }}>
       <div
         style={{
-          fontSize: 11,
-          fontWeight: 800,
+          fontSize: 12,
+          fontWeight: 500,
           color: 'var(--text-muted)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.1em',
           marginBottom: 11,
         }}
       >
@@ -329,28 +328,17 @@ function RightPanel({ topic, navigateTo }) {
       }}
     >
       {canPlay && navigateTo && (
-        <button
+        <Button
+          variant="primary"
+          size="md"
+          icon="play"
           onClick={() => navigateTo('player', { topic })}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 7,
-            width: '100%',
-            padding: '10px 0',
-            borderRadius: 10,
-            border: 'none',
-            background: '#6c8eff',
-            color: '#fff',
-            fontWeight: 700,
-            fontSize: 13,
-            cursor: 'pointer',
-          }}
+          style={{ width: '100%' }}
         >
-          ▶ Play
-        </button>
+          Play
+        </Button>
       )}
-      <Panel title="Scripts">
+      <Panel title="Scripts" first>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
           {funscripts.length ? (
             funscripts.map((f, i) => (
