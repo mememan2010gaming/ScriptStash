@@ -124,7 +124,15 @@ local.config.js
 # Tool metadata
 .headroom
 .serena
+.impeccable/
 docs/
+
+# Generated design/product docs (impeccable tool output)
+DESIGN.md
+PRODUCT.md
+
+# Dumped configs (tool output, not source)
+config-dump.json
 
 # Playwright E2E tests (local only)
 e2e/
