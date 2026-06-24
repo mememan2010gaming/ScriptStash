@@ -36,9 +36,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setDownloadPath: path => ipcRenderer.invoke('set-download-path', { path }),
   openFolder: path => ipcRenderer.invoke('open-folder', { path }),
   getDownloadHistory: () => ipcRenderer.invoke('get-download-history'),
-  scanLibrary: () => ipcRenderer.invoke('scan-library'),
+  getLibraryPath: () => ipcRenderer.invoke('get-library-path'),
+  setLibraryPath: newPath => ipcRenderer.invoke('set-library-path', { path: newPath }),
+  scanLibrary: opts => ipcRenderer.invoke('scan-library', opts || {}),
   pickLocalFile: filters => ipcRenderer.invoke('pick-local-file', { filters }),
   readLocalFile: filePath => ipcRenderer.invoke('read-local-file', { filePath }),
+  onLibraryScanProgress: cb => ipcRenderer.on('library:scan-progress', (_e, data) => cb(data)),
+  onLibraryScanComplete: cb => ipcRenderer.on('library:scan-complete', (_e, data) => cb(data)),
+  offLibraryScan: () => {
+    ipcRenderer.removeAllListeners('library:scan-progress')
+    ipcRenderer.removeAllListeners('library:scan-complete')
+  },
   clearDownloadHistory: () => ipcRenderer.invoke('clear-download-history'),
   verifyUrl: url => ipcRenderer.invoke('verify-url', { url }),
   getMaxDownloads: () => ipcRenderer.invoke('get-max-downloads'),

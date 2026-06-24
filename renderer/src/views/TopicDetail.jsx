@@ -298,7 +298,11 @@ function RightPanel({ topic, navigateTo }) {
   }
 
   const handleDownloadPaired = async (videoUrl, videoFilename) => {
-    setFailed(prev => { const n = { ...prev }; delete n[videoUrl]; return n })
+    setFailed(prev => {
+      const n = { ...prev }
+      delete n[videoUrl]
+      return n
+    })
     const funscriptUrl = funscripts[0]?.url ?? null
     if (funscriptUrl) {
       addToast(`Downloading video + script together…`, 'info')
@@ -484,7 +488,9 @@ function RightPanel({ topic, navigateTo }) {
                       <Icon name="external" size={12} /> Open
                     </a>
                     <button
-                      onClick={() => handleDownloadPaired(v.url, `${topic.title} - ${v.service}.mp4`)}
+                      onClick={() =>
+                        handleDownloadPaired(v.url, `${topic.title} - ${v.service}.mp4`)
+                      }
                       disabled={btnDisabled}
                       title={hasFailed ? failed[v.url] : undefined}
                       style={{

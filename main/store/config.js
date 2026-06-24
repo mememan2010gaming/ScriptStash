@@ -25,6 +25,10 @@ const store = new Store({
       type: 'string',
       default: '',
     },
+    libraryPath: {
+      type: 'string',
+      default: '',
+    },
     downloadHistory: {
       type: 'array',
       default: [],

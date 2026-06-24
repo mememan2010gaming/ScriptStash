@@ -19,7 +19,9 @@ function ViewContent(props) {
     case 'topics':
       return <TopicsView key={currentCategory} category={currentCategory} navigateTo={navigateTo} />
     case 'player':
-      return <PlayerView topic={props.playerTopic} localFile={props.playerLocalFile} goBack={goBack} />
+      return (
+        <PlayerView topic={props.playerTopic} localFile={props.playerLocalFile} goBack={goBack} />
+      )
     case 'library':
       return <LibraryView navigateTo={navigateTo} />
     case 'detail':

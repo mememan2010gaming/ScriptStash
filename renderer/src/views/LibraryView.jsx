@@ -1,6 +1,5 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Icon from '../design-system/components/Icon'
-import Skeleton from '../design-system/components/Skeleton'
 
 function parseFunscript(text) {
   const file = JSON.parse(text)
@@ -11,6 +10,35 @@ function parseFunscript(text) {
       .map(a => ({ at: Math.round(a.at), pos: Math.max(0, Math.min(99, Math.round(a.pos ?? 0))) }))
       .sort((a, b) => a.at - b.at),
   }
+}
+
+function Heatmap({ data }) {
+  if (!data || !data.length) return null
+  const max = Math.max(...data, 1)
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'flex-end',
+        gap: 1.5,
+        height: 22,
+        padding: '0 2px',
+        opacity: 0.75,
+      }}
+    >
+      {data.map((v, i) => (
+        <div
+          key={i}
+          style={{
+            flex: 1,
+            height: `${Math.max(4, (v / max) * 100)}%`,
+            borderRadius: 1.5,
+            background: `hsl(${150 + (v / 100) * 50}, 65%, 52%)`,
+          }}
+        />
+      ))}
+    </div>
+  )
 }
 
 function PairCard({ pair, onOpen }) {
@@ -24,13 +52,14 @@ function PairCard({ pair, onOpen }) {
         display: 'flex',
         flexDirection: 'column',
         textAlign: 'left',
-        padding: '14px 16px',
+        padding: '13px 14px 11px',
         borderRadius: 16,
         border: '1px solid var(--glass-border)',
         background: 'rgba(255,255,255,0.04)',
         cursor: 'pointer',
         gap: 8,
         transition: 'border-color 0.15s, background 0.15s',
+        width: '100%',
       }}
       onMouseEnter={e => {
         e.currentTarget.style.borderColor = 'var(--glass-border-bright)'
@@ -41,10 +70,26 @@ function PairCard({ pair, onOpen }) {
         e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
       }}
     >
-      <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', wordBreak: 'break-word' }}>
+      <div
+        style={{
+          fontSize: 13.5,
+          fontWeight: 700,
+          color: 'var(--text)',
+          wordBreak: 'break-word',
+          lineHeight: 1.35,
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+          minHeight: 36,
+        }}
+      >
         {pair.title}
       </div>
-      <div style={{ display: 'flex', gap: 6 }}>
+
+      {pair.heatmap && <Heatmap data={pair.heatmap} />}
+
+      <div style={{ display: 'flex', gap: 5, marginTop: pair.heatmap ? 0 : 2 }}>
         <span
           style={{
             fontSize: 10.5,
@@ -78,23 +123,83 @@ function PairCard({ pair, onOpen }) {
 
 export default function LibraryView({ navigateTo }) {
   const [pairs, setPairs] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [scanning, setScanning] = useState(true)
+  const [scanCount, setScanCount] = useState(0)
+  const [fromCache, setFromCache] = useState(false)
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState('name')
+  const [libraryPath, setLibraryPath] = useState('')
+  const mountedRef = useRef(true)
 
-  const reload = useCallback(() => {
-    setLoading(true)
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+      window.electronAPI?.offLibraryScan?.()
+    }
+  }, [])
+
+  const startScan = useCallback((forceRescan = false) => {
+    window.electronAPI?.offLibraryScan?.()
+    if (!forceRescan) setScanning(true)
+    setScanCount(0)
+
+    window.electronAPI?.onLibraryScanProgress?.(({ count }) => {
+      if (mountedRef.current) setScanCount(count)
+    })
+
+    window.electronAPI?.onLibraryScanComplete?.(({ pairs: fresh }) => {
+      if (!mountedRef.current) return
+      setPairs(fresh)
+      setScanning(false)
+      setScanCount(fresh.length)
+    })
+
     window.electronAPI
-      ?.scanLibrary?.()
+      ?.scanLibrary?.({ forceRescan })
       .then(r => {
-        if (r?.success) setPairs(r.data || [])
+        if (!mountedRef.current) return
+        if (r?.success && r.data) {
+          setPairs(r.data)
+          if (r.fromCache) {
+            setFromCache(true)
+            setScanning(false)
+            setScanCount(r.data.length)
+          }
+          // If not fromCache, the inline scan already ran — mark done
+          if (!r.fromCache) {
+            setScanning(false)
+            setFromCache(false)
+          }
+        } else {
+          setScanning(false)
+        }
       })
-      .finally(() => setLoading(false))
+      .catch(() => {
+        if (mountedRef.current) setScanning(false)
+      })
   }, [])
 
   useEffect(() => {
-    reload()
-  }, [reload])
+    window.electronAPI?.getLibraryPath?.().then(r => {
+      if (r?.success) setLibraryPath(r.data)
+    })
+    startScan(false)
+  }, [startScan])
+
+  const handleChangePath = async () => {
+    const r = await window.electronAPI?.setLibraryPath?.()
+    if (r?.success) {
+      setLibraryPath(r.data)
+      setPairs([])
+      startScan(true)
+    }
+  }
+
+  const handleForceRescan = () => {
+    setPairs([])
+    startScan(true)
+  }
 
   const filtered = pairs
     .filter(p => p.title.toLowerCase().includes(search.toLowerCase()))
@@ -114,8 +219,8 @@ export default function LibraryView({ navigateTo }) {
     }
     if (pair.funscript) {
       try {
-        const text = await window.electronAPI?.readLocalFile?.(pair.funscript)
-        if (text) actions = parseFunscript(text).actions
+        const r = await window.electronAPI?.readLocalFile?.(pair.funscript)
+        if (r?.success) actions = parseFunscript(r.data).actions
       } catch {}
     }
 
@@ -135,16 +240,15 @@ export default function LibraryView({ navigateTo }) {
     if (!res?.success) return
 
     const filePath = res.data
-    const basename = filePath.slice(
-      Math.max(filePath.lastIndexOf('/'), filePath.lastIndexOf('\\')) + 1,
-      filePath.lastIndexOf('.')
-    )
-    const dir = filePath.slice(0, Math.max(filePath.lastIndexOf('/'), filePath.lastIndexOf('\\')))
+    const sep = filePath.includes('\\') ? '\\' : '/'
+    const lastSep = Math.max(filePath.lastIndexOf('/'), filePath.lastIndexOf('\\'))
+    const lastDot = filePath.lastIndexOf('.')
+    const basename = filePath.slice(lastSep + 1, lastDot)
+    const dir = filePath.slice(0, lastSep)
 
-    // Auto-find companion: funscript → try .mp4 first (player handles not-found gracefully)
     const companionPath = isVideo
-      ? `${dir}/${basename}.funscript`
-      : `${dir}/${basename}.mp4`
+      ? `${dir}${sep}${basename}.funscript`
+      : `${dir}${sep}${basename}.mp4`
 
     const videoFilePath = isVideo ? filePath : companionPath
     const scriptFilePath = isVideo ? companionPath : filePath
@@ -157,8 +261,8 @@ export default function LibraryView({ navigateTo }) {
     }
     if (scriptFilePath) {
       try {
-        const text = await window.electronAPI?.readLocalFile?.(scriptFilePath)
-        if (text) actions = parseFunscript(text).actions
+        const r = await window.electronAPI?.readLocalFile?.(scriptFilePath)
+        if (r?.success) actions = parseFunscript(r.data).actions
       } catch {}
     }
 
@@ -171,84 +275,176 @@ export default function LibraryView({ navigateTo }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       {/* Header */}
-      <div
-        style={{
-          padding: '22px 28px 0',
-          flexShrink: 0,
-        }}
-      >
-        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-faint)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 6 }}>
+      <div style={{ padding: '20px 26px 0', flexShrink: 0 }}>
+        <div
+          style={{
+            fontSize: 11,
+            fontWeight: 700,
+            color: 'var(--text-faint)',
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            marginBottom: 4,
+          }}
+        >
           Local library
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-          <h1 style={{ fontSize: 28, fontWeight: 700, color: 'var(--text)', margin: 0 }}>Script Player</h1>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: 14,
+          }}
+        >
+          <h1 style={{ fontSize: 26, fontWeight: 700, color: 'var(--text)', margin: 0 }}>
+            Script Player
+          </h1>
           <button
-            onClick={reload}
-            style={{ background: 'transparent', border: 'none', color: 'var(--text-faint)', cursor: 'pointer', padding: 6 }}
-            title="Refresh library"
+            onClick={handleForceRescan}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--text-faint)',
+              cursor: 'pointer',
+              padding: 6,
+              borderRadius: 8,
+            }}
+            title="Rescan library"
           >
             <Icon name="arrowUp" size={16} />
           </button>
         </div>
 
-        {/* Open local file buttons */}
-        <div style={{ display: 'flex', gap: 9, marginBottom: 18 }}>
+        {/* Library path */}
+        <button
+          onClick={handleChangePath}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            width: '100%',
+            marginBottom: 14,
+            padding: '8px 12px',
+            borderRadius: 10,
+            border: '1px solid var(--glass-border)',
+            background: 'rgba(255,255,255,0.03)',
+            cursor: 'pointer',
+            textAlign: 'left',
+          }}
+        >
+          <Icon name="folder" size={14} style={{ color: 'var(--text-faint)', flexShrink: 0 }} />
+          <span
+            style={{
+              fontSize: 12,
+              color: 'var(--text-faint)',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              flex: 1,
+              minWidth: 0,
+            }}
+          >
+            {libraryPath || 'Loading…'}
+          </span>
+          <span style={{ fontSize: 11, color: 'var(--accent)', fontWeight: 700, flexShrink: 0 }}>
+            Change
+          </span>
+        </button>
+
+        {/* Scan progress bar */}
+        {scanning && (
+          <div style={{ marginBottom: 14 }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                fontSize: 11.5,
+                color: 'var(--text-faint)',
+                marginBottom: 5,
+              }}
+            >
+              <span>{fromCache ? 'Refreshing in background…' : 'Scanning library…'}</span>
+              <span className="num">{scanCount} found</span>
+            </div>
+            <div
+              style={{
+                height: 3,
+                borderRadius: 2,
+                background: 'rgba(255,255,255,0.08)',
+                overflow: 'hidden',
+              }}
+            >
+              <div
+                style={{
+                  height: '100%',
+                  width: fromCache ? '60%' : '100%',
+                  background: 'var(--accent)',
+                  borderRadius: 2,
+                  animation: 'shimmer 1.4s ease-in-out infinite',
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Open file buttons */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
           <button
             onClick={() => handlePickFile('video')}
             style={{
               flex: 1,
-              padding: '10px 14px',
-              borderRadius: 12,
+              padding: '9px 12px',
+              borderRadius: 11,
               border: '1px solid var(--glass-border)',
               background: 'rgba(108,142,255,0.1)',
               color: '#6c8eff',
               fontWeight: 700,
-              fontSize: 13,
+              fontSize: 12.5,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: 7,
+              gap: 6,
             }}
           >
-            <Icon name="play" size={14} /> Open video file
+            <Icon name="play" size={13} /> Open video
           </button>
           <button
             onClick={() => handlePickFile('funscript')}
             style={{
               flex: 1,
-              padding: '10px 14px',
-              borderRadius: 12,
+              padding: '9px 12px',
+              borderRadius: 11,
               border: '1px solid var(--glass-border)',
               background: 'rgba(59,224,160,0.1)',
               color: 'var(--green)',
               fontWeight: 700,
-              fontSize: 13,
+              fontSize: 12.5,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: 7,
+              gap: 6,
             }}
           >
-            <Icon name="file" size={14} /> Open funscript
+            <Icon name="file" size={13} /> Open funscript
           </button>
         </div>
 
         {/* Search + sort */}
-        <div style={{ display: 'flex', gap: 9, marginBottom: 18 }}>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Search library…"
+            placeholder={`Search ${pairs.length} scripts…`}
             className="glass"
             style={{
               flex: 1,
-              padding: '10px 14px',
-              borderRadius: 12,
+              padding: '9px 13px',
+              borderRadius: 11,
               border: '1px solid var(--glass-border)',
               color: 'var(--text)',
-              fontSize: 14,
+              fontSize: 13.5,
               fontFamily: 'inherit',
               outline: 'none',
             }}
@@ -260,40 +456,49 @@ export default function LibraryView({ navigateTo }) {
             onChange={e => setSort(e.target.value)}
             className="glass"
             style={{
-              padding: '10px 12px',
-              borderRadius: 12,
+              padding: '9px 11px',
+              borderRadius: 11,
               border: '1px solid var(--glass-border)',
               color: 'var(--text)',
-              fontSize: 13,
+              fontSize: 12.5,
               fontFamily: 'inherit',
               background: 'var(--glass)',
               cursor: 'pointer',
               outline: 'none',
             }}
           >
-            <option value="name">Name</option>
+            <option value="name">A–Z</option>
             <option value="paired">Paired first</option>
           </select>
         </div>
       </div>
 
       {/* Grid */}
-      <div style={{ flex: 1, overflow: 'auto', padding: '0 28px 28px' }}>
-        {loading ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
-            {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} height={90} radius={16} />)}
-          </div>
-        ) : filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', color: 'var(--text-faint)', padding: '60px 0', fontSize: 14 }}>
-            {search ? `No results for "${search}"` : 'No scripts found in your download folder.'}
+      <div style={{ flex: 1, overflow: 'auto', padding: '0 26px 26px' }}>
+        {!scanning && filtered.length === 0 ? (
+          <div
+            style={{
+              textAlign: 'center',
+              color: 'var(--text-faint)',
+              padding: '60px 0',
+              fontSize: 14,
+            }}
+          >
+            {search ? `No results for "${search}"` : 'No scripts found in this folder.'}
             {!search && (
               <div style={{ marginTop: 8, fontSize: 12.5 }}>
-                Download scripts from the catalogue to see them here.
+                Download scripts from the catalogue, or change the library folder above.
               </div>
             )}
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))',
+              gap: 10,
+            }}
+          >
             {filtered.map((pair, i) => (
               <PairCard key={`${pair.dir}-${pair.title}-${i}`} pair={pair} onOpen={openLocalPair} />
             ))}

@@ -397,13 +397,13 @@ export default function TopicsView({ category, navigateTo }) {
   const [hasMore, setHasMore] = useState(true)
   const [tab, setTab] = useState('latest')
   const [search, setSearch] = useState('')
+  const [apiQuery, setApiQuery] = useState('') // only set on Enter
   const [searchResults, setSearchResults] = useState(null)
   const [searchLoading, setSearchLoading] = useState(false)
   const gridRef = useRef(null)
   const scrollRef = useRef(null)
   const sentinelRef = useRef(null)
   const seenPages = useRef(new Set())
-  const searchTimer = useRef(null)
   const prefetchCache = useRef({}) // key: `${sort}:${page}` → topics[]
   const scrollKey = `${category}:${tab}`
 
@@ -486,6 +486,7 @@ export default function TopicsView({ category, navigateTo }) {
     setPage(0)
     setHasMore(true)
     setSearch('')
+    setApiQuery('')
     setSearchResults(null)
     fetchTopics(0, true, tab)
   }, [category, tab])
@@ -505,28 +506,26 @@ export default function TopicsView({ category, navigateTo }) {
 
   const { query: cleanQuery, negTags } = parseSearch(search)
 
-  // Debounced search via the real search endpoint
+  // Clear API results when input is fully cleared
   useEffect(() => {
-    clearTimeout(searchTimer.current)
-    if (!cleanQuery && negTags.length === 0) {
+    if (!search.trim()) {
+      setApiQuery('')
       setSearchResults(null)
-      return
     }
-    searchTimer.current = setTimeout(async () => {
-      setSearchLoading(true)
-      try {
-        if (cleanQuery) {
-          const res = await window.electronAPI?.searchTopics?.(cleanQuery, 0)
-          if (res?.success) setSearchResults(res.data?.topics || [])
-        } else {
-          // No positive query — apply neg-tag filter on loaded topics
-          setSearchResults(null)
-        }
-      } catch {}
-      setSearchLoading(false)
-    }, 400)
-    return () => clearTimeout(searchTimer.current)
-  }, [search]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [search])
+
+  // Fire API search only when apiQuery changes (set by Enter key)
+  useEffect(() => {
+    if (!apiQuery) return
+    setSearchLoading(true)
+    window.electronAPI
+      ?.searchTopics?.(apiQuery, 0)
+      .then(res => {
+        if (res?.success) setSearchResults(res.data?.topics || [])
+      })
+      .catch(() => {})
+      .finally(() => setSearchLoading(false))
+  }, [apiQuery])
 
   useEffect(() => {
     if (!sentinelRef.current) return
@@ -541,13 +540,18 @@ export default function TopicsView({ category, navigateTo }) {
     return () => obs.disconnect()
   }, [hasMore, loading, loadingMore, page, tab, fetchTopics, search])
 
-  const baseList = searchResults ?? topics
+  // Instant local filter against loaded topics (title match) while no API results yet
+  const localFiltered = cleanQuery
+    ? topics.filter(t => t.title.toLowerCase().includes(cleanQuery.toLowerCase()))
+    : topics
+
+  const baseList = searchResults ?? (cleanQuery ? localFiltered : topics)
   const filtered =
     negTags.length === 0
       ? baseList
       : baseList.filter(t => {
           const topicTags = (t.tags || []).map(tag =>
-            (typeof tag === 'string' ? tag : tag?.name ?? '').toLowerCase()
+            (typeof tag === 'string' ? tag : (tag?.name ?? '')).toLowerCase()
           )
           return !negTags.some(neg => topicTags.includes(neg))
         })
@@ -594,7 +598,15 @@ export default function TopicsView({ category, navigateTo }) {
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Filter this library… use -tag to exclude"
+            onKeyDown={e => {
+              if (e.key === 'Enter' && cleanQuery) setApiQuery(cleanQuery)
+              if (e.key === 'Escape') {
+                setSearch('')
+                setApiQuery('')
+                setSearchResults(null)
+              }
+            }}
+            placeholder="Filter… press ↵ to search all · use -tag to exclude"
             className="glass"
             style={{
               width: '100%',
@@ -636,7 +648,7 @@ export default function TopicsView({ category, navigateTo }) {
               ))}
             </div>
           )}
-          {(searchLoading || topics.length > 0) && (
+          {topics.length > 0 && (
             <span
               style={{
                 position: 'absolute',
@@ -645,13 +657,20 @@ export default function TopicsView({ category, navigateTo }) {
                 transform: 'translateY(-50%)',
                 fontSize: 12,
                 color: 'var(--text-faint)',
+                pointerEvents: 'none',
               }}
             >
               {searchLoading ? (
                 'Searching…'
+              ) : cleanQuery && !searchResults ? (
+                `${filtered.length} local · ↵ for all`
+              ) : searchResults ? (
+                <>
+                  <span className="num">{filtered.length}</span> results
+                </>
               ) : (
                 <>
-                  <span className="num">{filtered.length}</span> loaded
+                  <span className="num">{topics.length}</span> loaded
                 </>
               )}
             </span>
