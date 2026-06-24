@@ -406,6 +406,7 @@ export default function TopicsView({ category, navigateTo }) {
   const seenPages = useRef(new Set())
   const prefetchCache = useRef({}) // key: `${sort}:${page}` → topics[]
   const scrollKey = `${category}:${tab}`
+  const restoredScroll = useRef(false)
 
   const doFetch = useCallback(
     async (p, sort) => {
@@ -468,16 +469,21 @@ export default function TopicsView({ category, navigateTo }) {
     [category, doFetch, prefetch]
   )
 
-  // Save scroll position when leaving, restore when returning to same key
+  // Save scroll position when leaving (unmount or key change)
   useEffect(() => {
-    const el = scrollRef.current
-    if (!el) return
-    const saved = scrollPositions[scrollKey]
-    if (saved != null) el.scrollTop = saved
+    restoredScroll.current = false
     return () => {
       scrollPositions[scrollKey] = scrollRef.current?.scrollTop ?? 0
     }
   }, [scrollKey])
+
+  // Restore scroll position after topics finish loading (container has content by then)
+  useEffect(() => {
+    if (loading || restoredScroll.current || !scrollRef.current) return
+    restoredScroll.current = true
+    const saved = scrollPositions[scrollKey]
+    if (saved != null) scrollRef.current.scrollTop = saved
+  }, [loading, scrollKey])
 
   useEffect(() => {
     seenPages.current.clear()

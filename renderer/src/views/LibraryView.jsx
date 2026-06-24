@@ -146,7 +146,7 @@ function PairCard({ pair, onOpen }) {
       cancelled = true
       obs.disconnect()
     }
-  }, [videoSrc]) // eslint-disable-line
+  }, [videoSrc])
 
   // Derive a deterministic hue for the placeholder gradient
   const hue = pair.title.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360
