@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Icon from '../design-system/components/Icon'
 
+// Session-level cache so thumbnails survive sort/search changes without re-extracting
+const thumbCache = new Map()
+
 function parseFunscript(text) {
   const file = JSON.parse(text)
   if (!Array.isArray(file.actions)) throw new Error('no actions array')
@@ -12,18 +15,74 @@ function parseFunscript(text) {
   }
 }
 
+function extractThumbnail(src) {
+  if (thumbCache.has(src)) return Promise.resolve(thumbCache.get(src))
+  return new Promise(resolve => {
+    const video = document.createElement('video')
+    video.muted = true
+    video.preload = 'metadata'
+    video.playsInline = true
+
+    const cleanup = () => {
+      video.src = ''
+      video.load()
+    }
+    const bail = () => {
+      cleanup()
+      thumbCache.set(src, null)
+      resolve(null)
+    }
+    const timer = setTimeout(bail, 10000)
+
+    video.addEventListener('loadedmetadata', () => {
+      video.currentTime = Math.min(video.duration * 0.08, 12)
+    })
+
+    video.addEventListener('seeked', () => {
+      clearTimeout(timer)
+      try {
+        const w = video.videoWidth
+        const h = video.videoHeight
+        if (!w || !h) {
+          bail()
+          return
+        }
+        const canvas = document.createElement('canvas')
+        canvas.width = w
+        canvas.height = h
+        canvas.getContext('2d').drawImage(video, 0, 0)
+        const url = canvas.toDataURL('image/jpeg', 0.72)
+        thumbCache.set(src, url)
+        cleanup()
+        resolve(url)
+      } catch {
+        bail()
+      }
+    })
+
+    video.addEventListener('error', () => {
+      clearTimeout(timer)
+      bail()
+    })
+    video.src = src
+  })
+}
+
 function Heatmap({ data }) {
   if (!data || !data.length) return null
   const max = Math.max(...data, 1)
   return (
     <div
       style={{
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
         display: 'flex',
         alignItems: 'flex-end',
-        gap: 1.5,
-        height: 22,
-        padding: '0 2px',
-        opacity: 0.75,
+        gap: 1,
+        height: 28,
+        padding: '0 6px 4px',
       }}
     >
       {data.map((v, i) => (
@@ -31,9 +90,10 @@ function Heatmap({ data }) {
           key={i}
           style={{
             flex: 1,
-            height: `${Math.max(4, (v / max) * 100)}%`,
+            height: `${Math.max(6, (v / max) * 100)}%`,
             borderRadius: 1.5,
-            background: `hsl(${150 + (v / 100) * 50}, 65%, 52%)`,
+            background: `hsl(${150 + (v / 100) * 50}, 65%, 58%)`,
+            opacity: 0.85,
           }}
         />
       ))}
@@ -44,78 +104,142 @@ function Heatmap({ data }) {
 function PairCard({ pair, onOpen }) {
   const hasVideo = !!pair.video
   const hasScript = !!pair.funscript
+  const videoSrc = hasVideo ? `localfile://${pair.video.replace(/\\/g, '/')}` : null
+
+  const [thumb, setThumb] = useState(() => (videoSrc ? (thumbCache.get(videoSrc) ?? null) : null))
+  const cardRef = useRef(null)
+
+  useEffect(() => {
+    if (!videoSrc || thumb !== null || thumbCache.has(videoSrc)) {
+      if (thumbCache.has(videoSrc)) setThumb(thumbCache.get(videoSrc))
+      return
+    }
+
+    let cancelled = false
+    const obs = new IntersectionObserver(
+      entries => {
+        if (!entries[0].isIntersecting) return
+        obs.disconnect()
+        extractThumbnail(videoSrc).then(url => {
+          if (!cancelled) setThumb(url)
+        })
+      },
+      { rootMargin: '300px' }
+    )
+    if (cardRef.current) obs.observe(cardRef.current)
+    return () => {
+      cancelled = true
+      obs.disconnect()
+    }
+  }, [videoSrc]) // eslint-disable-line
+
+  // Derive a deterministic hue for the placeholder gradient
+  const hue = pair.title.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360
 
   return (
     <button
+      ref={cardRef}
       onClick={() => onOpen(pair)}
       style={{
         display: 'flex',
         flexDirection: 'column',
         textAlign: 'left',
-        padding: '13px 14px 11px',
+        padding: 0,
         borderRadius: 16,
         border: '1px solid var(--glass-border)',
         background: 'rgba(255,255,255,0.04)',
         cursor: 'pointer',
-        gap: 8,
-        transition: 'border-color 0.15s, background 0.15s',
-        width: '100%',
+        overflow: 'hidden',
+        transition: 'border-color 0.15s, transform 0.15s',
       }}
       onMouseEnter={e => {
         e.currentTarget.style.borderColor = 'var(--glass-border-bright)'
-        e.currentTarget.style.background = 'rgba(255,255,255,0.07)'
+        e.currentTarget.style.transform = 'translateY(-3px)'
       }}
       onMouseLeave={e => {
         e.currentTarget.style.borderColor = 'var(--glass-border)'
-        e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+        e.currentTarget.style.transform = 'none'
       }}
     >
+      {/* Thumbnail banner */}
       <div
         style={{
-          fontSize: 13.5,
-          fontWeight: 700,
-          color: 'var(--text)',
-          wordBreak: 'break-word',
-          lineHeight: 1.35,
-          display: '-webkit-box',
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: 'vertical',
+          height: 110,
+          position: 'relative',
           overflow: 'hidden',
-          minHeight: 36,
+          flexShrink: 0,
+          background: `linear-gradient(135deg, hsl(${hue},40%,18%), hsl(${(hue + 45) % 360},35%,12%))`,
         }}
       >
-        {pair.title}
+        {thumb && (
+          <img
+            src={thumb}
+            alt=""
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              display: 'block',
+            }}
+          />
+        )}
+        {/* Bottom fade for heatmap readability */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'linear-gradient(to top, rgba(8,5,10,0.80) 0%, transparent 55%)',
+          }}
+        />
+        <Heatmap data={pair.heatmap} />
       </div>
 
-      {pair.heatmap && <Heatmap data={pair.heatmap} />}
+      {/* Body */}
+      <div style={{ padding: '10px 13px 11px', display: 'flex', flexDirection: 'column', gap: 7 }}>
+        <div
+          style={{
+            fontSize: 13,
+            fontWeight: 700,
+            color: 'var(--text)',
+            lineHeight: 1.35,
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            minHeight: 35,
+          }}
+        >
+          {pair.title}
+        </div>
 
-      <div style={{ display: 'flex', gap: 5, marginTop: pair.heatmap ? 0 : 2 }}>
-        <span
-          style={{
-            fontSize: 10.5,
-            fontWeight: 700,
-            padding: '2px 8px',
-            borderRadius: 99,
-            background: hasVideo ? 'rgba(108,142,255,0.15)' : 'rgba(255,255,255,0.05)',
-            color: hasVideo ? '#6c8eff' : 'var(--text-faint)',
-            border: `1px solid ${hasVideo ? 'rgba(108,142,255,0.3)' : 'var(--glass-border)'}`,
-          }}
-        >
-          {hasVideo ? '▶ Video' : 'No video'}
-        </span>
-        <span
-          style={{
-            fontSize: 10.5,
-            fontWeight: 700,
-            padding: '2px 8px',
-            borderRadius: 99,
-            background: hasScript ? 'rgba(59,224,160,0.12)' : 'rgba(255,255,255,0.05)',
-            color: hasScript ? 'var(--green)' : 'var(--text-faint)',
-            border: `1px solid ${hasScript ? 'rgba(59,224,160,0.25)' : 'var(--glass-border)'}`,
-          }}
-        >
-          {hasScript ? '✓ Script' : 'No script'}
-        </span>
+        <div style={{ display: 'flex', gap: 5 }}>
+          <span
+            style={{
+              fontSize: 10.5,
+              fontWeight: 700,
+              padding: '2px 8px',
+              borderRadius: 99,
+              background: hasVideo ? 'rgba(108,142,255,0.15)' : 'rgba(255,255,255,0.05)',
+              color: hasVideo ? '#6c8eff' : 'var(--text-faint)',
+              border: `1px solid ${hasVideo ? 'rgba(108,142,255,0.3)' : 'var(--glass-border)'}`,
+            }}
+          >
+            {hasVideo ? '▶ Video' : 'No video'}
+          </span>
+          <span
+            style={{
+              fontSize: 10.5,
+              fontWeight: 700,
+              padding: '2px 8px',
+              borderRadius: 99,
+              background: hasScript ? 'rgba(59,224,160,0.12)' : 'rgba(255,255,255,0.05)',
+              color: hasScript ? 'var(--green)' : 'var(--text-faint)',
+              border: `1px solid ${hasScript ? 'rgba(59,224,160,0.25)' : 'var(--glass-border)'}`,
+            }}
+          >
+            {hasScript ? '✓ Script' : 'No script'}
+          </span>
+        </div>
       </div>
     </button>
   )
@@ -165,9 +289,7 @@ export default function LibraryView({ navigateTo }) {
             setFromCache(true)
             setScanning(false)
             setScanCount(r.data.length)
-          }
-          // If not fromCache, the inline scan already ran — mark done
-          if (!r.fromCache) {
+          } else {
             setScanning(false)
             setFromCache(false)
           }
@@ -192,6 +314,7 @@ export default function LibraryView({ navigateTo }) {
     if (r?.success) {
       setLibraryPath(r.data)
       setPairs([])
+      thumbCache.clear()
       startScan(true)
     }
   }
@@ -213,21 +336,14 @@ export default function LibraryView({ navigateTo }) {
   const openLocalPair = async pair => {
     let videoSrc = null
     let actions = []
-
-    if (pair.video) {
-      videoSrc = `localfile://${pair.video.replace(/\\/g, '/')}`
-    }
+    if (pair.video) videoSrc = `localfile://${pair.video.replace(/\\/g, '/')}`
     if (pair.funscript) {
       try {
         const r = await window.electronAPI?.readLocalFile?.(pair.funscript)
         if (r?.success) actions = parseFunscript(r.data).actions
       } catch {}
     }
-
-    navigateTo('player', {
-      topic: null,
-      localFile: { videoSrc, actions, title: pair.title },
-    })
+    navigateTo('player', { topic: null, localFile: { videoSrc, actions, title: pair.title } })
   }
 
   const handlePickFile = async type => {
@@ -245,7 +361,6 @@ export default function LibraryView({ navigateTo }) {
     const lastDot = filePath.lastIndexOf('.')
     const basename = filePath.slice(lastSep + 1, lastDot)
     const dir = filePath.slice(0, lastSep)
-
     const companionPath = isVideo
       ? `${dir}${sep}${basename}.funscript`
       : `${dir}${sep}${basename}.mp4`
@@ -255,10 +370,7 @@ export default function LibraryView({ navigateTo }) {
 
     let videoSrc = null
     let actions = []
-
-    if (videoFilePath) {
-      videoSrc = `localfile://${videoFilePath.replace(/\\/g, '/')}`
-    }
+    if (videoFilePath) videoSrc = `localfile://${videoFilePath.replace(/\\/g, '/')}`
     if (scriptFilePath) {
       try {
         const r = await window.electronAPI?.readLocalFile?.(scriptFilePath)
@@ -266,10 +378,7 @@ export default function LibraryView({ navigateTo }) {
       } catch {}
     }
 
-    navigateTo('player', {
-      topic: null,
-      localFile: { videoSrc, actions, title: basename },
-    })
+    navigateTo('player', { topic: null, localFile: { videoSrc, actions, title: basename } })
   }
 
   return (
@@ -377,7 +486,7 @@ export default function LibraryView({ navigateTo }) {
               <div
                 style={{
                   height: '100%',
-                  width: fromCache ? '60%' : '100%',
+                  width: '40%',
                   background: 'var(--accent)',
                   borderRadius: 2,
                   animation: 'shimmer 1.4s ease-in-out infinite',
