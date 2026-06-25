@@ -1,3 +1,4 @@
+
 name: Build and Release
 
 on:
@@ -82,14 +83,11 @@ jobs:
       - name: Build renderer
         run: npm run build:renderer
 
-      - name: Install Playwright system dependencies
-        run: npx playwright install-deps
-
       - name: Install Xvfb
         run: sudo apt-get install -y xvfb
 
       - name: Run e2e tests
-        run: xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" npm run test:e2e -- --workers=1
+        run: xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" npm run test:e2e -- --workers=4
 
       - name: Upload Playwright report
         if: failure()
