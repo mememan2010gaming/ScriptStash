@@ -1,59 +1,71 @@
-'use strict';
+'use strict'
 
-const { AppPage } = require('./AppPage');
+const { AppPage } = require('./AppPage')
 
 class TopicDetailPage extends AppPage {
-  title() { return this.page.locator('h1, h2').first(); }
+  title() {
+    return this.page.locator('h1, h2').first()
+  }
 
-  async getTitle() { return this.title().textContent(); }
+  async getTitle() {
+    return this.title().textContent()
+  }
 
   // ─── Video / funscript sections ──────────────────────────────────────────────
 
   videoSection() {
-    return this.page.locator('[class*="video"], [class*="Video"]')
+    return this.page
+      .locator('[class*="video"], [class*="Video"]')
       .or(this.page.getByText(/video/i).locator('..'))
-      .first();
+      .first()
   }
 
   funscriptSection() {
-    return this.page.locator('[class*="funscript"], [class*="Funscript"], [class*="script"]')
+    return this.page
+      .locator('[class*="funscript"], [class*="Funscript"], [class*="script"]')
       .or(this.page.getByText(/funscript/i).locator('..'))
-      .first();
+      .first()
   }
 
   downloadButtons() {
-    return this.page.getByRole('button', { name: /download/i })
-      .or(this.page.locator('[class*="download"]').filter({ hasText: /download/i }));
+    return this.page
+      .getByRole('button', { name: /download/i })
+      .or(this.page.locator('[class*="download"]').filter({ hasText: /download/i }))
   }
 
   async clickFirstDownload() {
-    await this.downloadButtons().first().click();
+    await this.downloadButtons().first().click()
   }
 
   // ─── Posts ───────────────────────────────────────────────────────────────────
 
   posts() {
-    return this.page.locator('[class*="post"], [class*="Post"], [class*="reply"]')
-      .filter({ hasText: /./ });
+    return this.page
+      .locator('[class*="post"], [class*="Post"], [class*="reply"]')
+      .filter({ hasText: /./ })
   }
 
-  async postCount() { return this.posts().count(); }
+  async postCount() {
+    return this.posts().count()
+  }
 
   // ─── Tags ────────────────────────────────────────────────────────────────────
 
   tags() {
-    return this.page.locator('[class*="tag"], [class*="Tag"], [class*="badge"]')
-      .or(this.page.getByRole('list').filter({ hasText: /#\w+/ }));
+    return this.page
+      .locator('[class*="tag"], [class*="Tag"], [class*="badge"]')
+      .or(this.page.getByRole('list').filter({ hasText: /#\w+/ }))
   }
 
   // ─── Stats ───────────────────────────────────────────────────────────────────
 
   async getViewCount() {
-    const el = this.page.locator('[class*="view"], [class*="stat"]')
+    const el = this.page
+      .locator('[class*="view"], [class*="stat"]')
       .filter({ hasText: /\d/ })
-      .first();
-    return el.textContent();
+      .first()
+    return el.textContent()
   }
 }
 
-module.exports = { TopicDetailPage };
+module.exports = { TopicDetailPage }

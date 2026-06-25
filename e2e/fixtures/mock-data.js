@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 const MOCK_USER = {
   id: 42,
@@ -6,7 +6,7 @@ const MOCK_USER = {
   name: 'Test User',
   avatar_template: '/letter_avatar_proxy/v4/letter/t/7e3bff/{size}.png',
   trust_level: 2,
-};
+}
 
 // Produces a topic in the shape api.service returns after enrichment (camelCase).
 const makeTopic = (overrides = {}) => {
@@ -35,11 +35,15 @@ const makeTopic = (overrides = {}) => {
       { url: 'https://example.com/video.mp4', label: 'Direct Link', type: 'direct' },
     ],
     funscriptLinks: overrides.funscriptLinks ?? [
-      { url: 'https://example.com/script.funscript', label: 'Funscript', filename: 'test-script.funscript' },
+      {
+        url: 'https://example.com/script.funscript',
+        label: 'Funscript',
+        filename: 'test-script.funscript',
+      },
     ],
     duration: overrides.duration ?? null,
     ...overrides,
-  };
+  }
 
   // Camelcase aliases that api.service normally adds
   return {
@@ -51,23 +55,77 @@ const makeTopic = (overrides = {}) => {
     imageUrl: raw.image_url,
     author: overrides.author ?? { username: 'scriptmaker', avatar: null },
     hue: (raw.id ?? 1001) % 360,
-  };
-};
+  }
+}
 
 const MOCK_TOPICS = [
-  makeTopic({ id: 1001, title: 'Amazing PMV Script [FREE]', views: 5000, like_count: 120, tags: ['free', 'pmv'] }),
-  makeTopic({ id: 1002, title: 'Premium POV Script [PAID]', isPaid: true, tags: ['paid', 'pov'], like_count: 88 }),
-  makeTopic({ id: 1003, title: 'Vanilla Scene Sync', views: 800, like_count: 22, tags: ['free', 'vanilla'] }),
-  makeTopic({ id: 1004, title: 'BDSM Compilation Script', views: 3100, like_count: 67, tags: ['free', 'bdsm'] }),
-  makeTopic({ id: 1005, title: 'Hentai Loop Script [PAID]', isPaid: true, tags: ['paid', 'hentai'], like_count: 44 }),
-  makeTopic({ id: 1006, title: 'SFM Animation Sync', views: 920, like_count: 31, tags: ['free', 'sfm'] }),
-  makeTopic({ id: 1007, title: 'JAV Script Collection', views: 2200, like_count: 55, tags: ['free', 'jav'] }),
-  makeTopic({ id: 1008, title: 'Creampie Compilation', views: 1800, like_count: 49, tags: ['free', 'compilation'] }),
-];
+  makeTopic({
+    id: 1001,
+    title: 'Amazing PMV Script [FREE]',
+    views: 5000,
+    like_count: 120,
+    tags: ['free', 'pmv'],
+  }),
+  makeTopic({
+    id: 1002,
+    title: 'Premium POV Script [PAID]',
+    isPaid: true,
+    tags: ['paid', 'pov'],
+    like_count: 88,
+  }),
+  makeTopic({
+    id: 1003,
+    title: 'Vanilla Scene Sync',
+    views: 800,
+    like_count: 22,
+    tags: ['free', 'vanilla'],
+  }),
+  makeTopic({
+    id: 1004,
+    title: 'BDSM Compilation Script',
+    views: 3100,
+    like_count: 67,
+    tags: ['free', 'bdsm'],
+  }),
+  makeTopic({
+    id: 1005,
+    title: 'Hentai Loop Script [PAID]',
+    isPaid: true,
+    tags: ['paid', 'hentai'],
+    like_count: 44,
+  }),
+  makeTopic({
+    id: 1006,
+    title: 'SFM Animation Sync',
+    views: 920,
+    like_count: 31,
+    tags: ['free', 'sfm'],
+  }),
+  makeTopic({
+    id: 1007,
+    title: 'JAV Script Collection',
+    views: 2200,
+    like_count: 55,
+    tags: ['free', 'jav'],
+  }),
+  makeTopic({
+    id: 1008,
+    title: 'Creampie Compilation',
+    views: 1800,
+    like_count: 49,
+    tags: ['free', 'compilation'],
+  }),
+]
 
 // Enriched topic detail shape that TopicDetail.jsx expects after api.service processes it.
 const MOCK_TOPIC_DETAIL = {
-  ...makeTopic({ id: 1001, title: 'Amazing PMV Script [FREE]', views: 5000, like_count: 120, tags: ['free', 'pmv'] }),
+  ...makeTopic({
+    id: 1001,
+    title: 'Amazing PMV Script [FREE]',
+    views: 5000,
+    like_count: 120,
+    tags: ['free', 'pmv'],
+  }),
   likeCount: 120,
   postsCount: 3,
   mainPost: {
@@ -82,10 +140,18 @@ const MOCK_TOPIC_DETAIL = {
   },
   downloads: {
     funscripts: [
-      { url: 'https://example.com/amazing-pmv.funscript', label: 'Funscript', filename: 'amazing-pmv.funscript' },
+      {
+        url: 'https://example.com/amazing-pmv.funscript',
+        label: 'Funscript',
+        filename: 'amazing-pmv.funscript',
+      },
     ],
     rankedVideos: [
-      { url: 'https://www.pornhub.com/view_video.php?viewkey=abc123', label: 'PornHub', type: 'pornhub' },
+      {
+        url: 'https://www.pornhub.com/view_video.php?viewkey=abc123',
+        label: 'PornHub',
+        type: 'pornhub',
+      },
     ],
     videos: [],
   },
@@ -129,7 +195,7 @@ const MOCK_TOPIC_DETAIL = {
       { id: 101, username: 'fan123', post_count: 1 },
     ],
   },
-};
+}
 
 const MOCK_SEARCH_RESULTS = {
   topics: [
@@ -151,10 +217,10 @@ const MOCK_SEARCH_RESULTS = {
     topic_ids: [2001, 2002],
     more_full_page_results: false,
   },
-};
+}
 
-const MOCK_DOWNLOAD_PATH = 'C:\\Users\\TestUser\\Downloads\\ScriptStash';
-const MOCK_APP_VERSION = '2.4.29';
+const MOCK_DOWNLOAD_PATH = 'C:\\Users\\TestUser\\Downloads\\ScriptStash'
+const MOCK_APP_VERSION = '2.4.29'
 
 const MOCK_SETTINGS = {
   notifications: true,
@@ -163,13 +229,13 @@ const MOCK_SETTINGS = {
   devMode: false,
   maxSimultaneousDownloads: 3,
   downloadPath: MOCK_DOWNLOAD_PATH,
-};
+}
 
 const MOCK_ADBLOCKER_STATUS = {
   enabled: false,
   blocked: 0,
   initialized: true,
-};
+}
 
 const MOCK_NOTIFICATIONS = [
   {
@@ -179,7 +245,11 @@ const MOCK_NOTIFICATIONS = [
     created_at: '2024-06-20T10:00:00.000Z',
     topic_id: 1001,
     slug: 'amazing-pmv-script',
-    data: { topic_title: 'Amazing PMV Script [FREE]', display_username: 'fan123', original_post_type: 2 },
+    data: {
+      topic_title: 'Amazing PMV Script [FREE]',
+      display_username: 'fan123',
+      original_post_type: 2,
+    },
   },
   {
     id: 102,
@@ -190,15 +260,15 @@ const MOCK_NOTIFICATIONS = [
     slug: 'premium-pov-script',
     data: { topic_title: 'Premium POV Script [PAID]', display_username: 'user456' },
   },
-];
+]
 
-const MOCK_YTDLP_VERSION = '2024.04.09';
+const MOCK_YTDLP_VERSION = '2024.04.09'
 
 const MOCK_THEMES = [
   { id: 'midnight', name: 'Midnight', primary: '#7c3aed' },
   { id: 'ocean', name: 'Ocean', primary: '#0ea5e9' },
   { id: 'rose', name: 'Rose', primary: '#e11d48' },
-];
+]
 
 module.exports = {
   MOCK_USER,
@@ -213,4 +283,4 @@ module.exports = {
   MOCK_YTDLP_VERSION,
   MOCK_THEMES,
   makeTopic,
-};
+}
