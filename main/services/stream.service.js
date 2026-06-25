@@ -100,4 +100,14 @@ function cleanupTempFiles() {
   tempFiles.clear()
 }
 
-module.exports = { downloadVideoToTemp, cleanupTempFiles, getTempDir }
+async function getStreamUrl(videoUrl) {
+  // Use require (not .default) so jest.mock can intercept in tests
+  const Ctor = require('yt-dlp-wrap')
+  const instance = new Ctor()
+  const output = await instance.execPromise([videoUrl, '-g', '--no-playlist'])
+  const first = output.split('\n').find(l => l.trim())
+  if (!first) throw new Error('yt-dlp returned no stream URL')
+  return first.trim()
+}
+
+module.exports = { downloadVideoToTemp, cleanupTempFiles, getTempDir, getStreamUrl }
