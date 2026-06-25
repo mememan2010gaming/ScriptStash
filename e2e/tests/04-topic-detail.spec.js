@@ -70,8 +70,11 @@ test.describe('Topic detail view', () => {
   });
 
   test('topic stats (views, likes) are shown', async ({ page }) => {
-    // Mock has views: 5000 → formatted as '5k', like_count: 120
-    const stats = page.getByText('5k').or(page.getByText('120')).first();
+    // Mock has views: 5000 → formatted as '5k', like_count: 120. Use filter({ visible: true })
+    // because the hidden TopicsView also contains these values and is first in DOM order.
+    const stats = page.getByText('5k').filter({ visible: true })
+      .or(page.getByText('120').filter({ visible: true }))
+      .first();
     await expect(stats).toBeVisible({ timeout: 8_000 });
   });
 

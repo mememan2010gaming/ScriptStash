@@ -54,9 +54,10 @@ test.describe('Search view', () => {
       .first();
     await input.fill('test');
     await input.press('Enter');
-    await page.locator('[data-card]').first().waitFor({ state: 'visible', timeout: 10_000 });
+    // Wait for visible search result cards — hidden TopicsView cards are first in DOM order.
+    await page.locator('[data-card]').filter({ visible: true }).first().waitFor({ state: 'visible', timeout: 10_000 });
 
-    const items = page.locator('[data-card]');
+    const items = page.locator('[data-card]').filter({ visible: true });
     const count = await items.count();
     expect(count).toBeGreaterThanOrEqual(MOCK_SEARCH_RESULTS.topics.length);
   });
