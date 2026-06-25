@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useDownloads } from '../contexts/DownloadContext'
 import CountUp from '../design-system/components/CountUp'
 import Icon from '../design-system/components/Icon'
+import ProgressBar from '../design-system/components/ProgressBar'
 
 function fmtBytes(b) {
   if (!b || b <= 0) return '0 B'
@@ -9,32 +10,6 @@ function fmtBytes(b) {
   if (b < 1e6) return `${(b / 1024).toFixed(1)} KB`
   if (b < 1e9) return `${(b / 1e6).toFixed(1)} MB`
   return `${(b / 1e9).toFixed(2)} GB`
-}
-
-function ProgressBar({ value = 0 }) {
-  return (
-    <div
-      style={{
-        width: '100%',
-        height: 6,
-        borderRadius: 99,
-        background: 'var(--toggle-off)',
-        overflow: 'hidden',
-        border: '1px solid var(--glass-border)',
-      }}
-    >
-      <div
-        style={{
-          height: '100%',
-          width: `${value}%`,
-          borderRadius: 99,
-          background: 'var(--accent-gradient)',
-          boxShadow: '0 0 12px var(--accent-glow)',
-          transition: 'width 520ms cubic-bezier(0.22,1,0.36,1)',
-        }}
-      />
-    </div>
-  )
 }
 
 function StatTile({ label, children }) {
@@ -141,18 +116,6 @@ export default function DownloadsView() {
             borderBottom: '1px solid var(--glass-border)',
           }}
         >
-          <div
-            style={{
-              fontSize: 11.5,
-              fontWeight: 700,
-              letterSpacing: '0.14em',
-              textTransform: 'uppercase',
-              color: 'var(--accent-2)',
-              marginBottom: 6,
-            }}
-          >
-            Transfer queue
-          </div>
           <h1
             className="display"
             style={{ fontSize: 30, fontWeight: 700, color: 'var(--text)', lineHeight: 1.05 }}
@@ -234,7 +197,12 @@ export default function DownloadsView() {
                         {d.progress ?? 0}%
                       </span>
                     </div>
-                    <ProgressBar value={d.progress ?? 0} />
+                    <ProgressBar
+                      value={d.progress ?? 0}
+                      color="var(--accent-gradient)"
+                      height={6}
+                      glow
+                    />
                     {(d.bytesReceived > 0 || d.totalBytes > 0) && (
                       <div
                         style={{

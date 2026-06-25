@@ -27,7 +27,12 @@ class ApiService {
     // Acquire rate limiter token
     await this.rateLimiter.acquire()
 
-    const headers = authService.getAuthHeaders()
+    const authHeaders = authService.getAuthHeaders()
+    const csrfToken = method !== 'GET' ? await authService.getCsrfToken() : null
+    const headers = {
+      ...authHeaders,
+      ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+    }
     let lastError = null
 
     // Retry logic with exponential backoff
@@ -284,6 +289,7 @@ class ApiService {
    * Enhance post with processed data
    */
   enhancePost(post) {
+    const likeAction = (post.actions_summary || []).find(a => a.id === 2)
     return {
       id: post.id,
       postNumber: post.post_number,
@@ -294,17 +300,23 @@ class ApiService {
       createdAt: post.created_at,
       reads: post.reads,
       linkCounts: post.link_counts || [],
-      likeCount: this.getLikeCount(post.actions_summary),
+      likeCount: likeAction ? likeAction.count : 0,
+      currentUserLiked: !!(likeAction && likeAction.acted),
     }
   }
 
-  /**
-   * Get like count from actions summary
-   */
-  getLikeCount(actionsSummary) {
-    if (!actionsSummary) return 0
-    const likeAction = actionsSummary.find(a => a.id === 2)
-    return likeAction ? likeAction.count : 0
+  async likePost(postId) {
+    return this.request('/post_actions', {
+      method: 'POST',
+      data: { post_id: postId, post_action_type_id: 2 },
+    })
+  }
+
+  async unlikePost(postId) {
+    return this.request(`/post_actions/${postId}`, {
+      method: 'DELETE',
+      params: { post_action_type_id: 2 },
+    })
   }
 
   /**

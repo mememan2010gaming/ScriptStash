@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
+import { formatDate } from '../utils/formatters'
 import MegaFolderPicker from '../components/MegaFolderPicker'
 import { useDownloads } from '../contexts/DownloadContext'
 import { useToast } from '../contexts/ToastContext'
 import { useIpcListener } from '../hooks/useIpc'
 import Icon from '../design-system/components/Icon'
+import Button from '../design-system/components/Button'
 import CountUp from '../design-system/components/CountUp'
 import Skeleton from '../design-system/components/Skeleton'
 import ProgressBar from '../design-system/components/ProgressBar'
@@ -53,16 +55,14 @@ function useLiquidGlass() {
   return { ref, onMouseMove }
 }
 
-function Panel({ title, children }) {
+function Panel({ title, children, first }) {
   return (
-    <div>
+    <div style={first ? undefined : { borderTop: '1px solid var(--glass-border)', paddingTop: 20 }}>
       <div
         style={{
-          fontSize: 11,
-          fontWeight: 800,
+          fontSize: 12,
+          fontWeight: 500,
           color: 'var(--text-muted)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.1em',
           marginBottom: 11,
         }}
       >
@@ -198,7 +198,7 @@ function CommentItem({ comment }) {
           {comment.username}
         </span>
         <span style={{ fontSize: 11.5, color: 'var(--text-faint)' }}>
-          {comment.createdAt ? new Date(comment.createdAt).toLocaleDateString() : ''}
+          {comment.createdAt ? formatDate(comment.createdAt) : ''}
         </span>
         {hasVideo && (
           <span
@@ -224,7 +224,7 @@ function CommentItem({ comment }) {
   )
 }
 
-function RightPanel({ topic }) {
+function RightPanel({ topic, navigateTo }) {
   const { downloadFile } = useDownloads()
   const { addToast } = useToast()
   const [progress, setProgress] = useState({})
@@ -235,6 +235,7 @@ function RightPanel({ topic }) {
 
   const funscripts = topic.downloads?.funscripts || []
   const rankedVideos = topic.downloads?.rankedVideos || topic.downloads?.videos || []
+  const canPlay = funscripts.length > 0 && rankedVideos.length > 0
 
   useEffect(() => {
     setVerified({})
@@ -295,6 +296,23 @@ function RightPanel({ topic }) {
     addToast(`Downloading: ${filename}`, 'info')
   }
 
+  const handleDownloadPaired = async (videoUrl, videoFilename) => {
+    setFailed(prev => {
+      const n = { ...prev }
+      delete n[videoUrl]
+      return n
+    })
+    const funscriptUrl = funscripts[0]?.url ?? null
+    if (funscriptUrl) {
+      addToast(`Downloading video + script together…`, 'info')
+      window.electronAPI
+        ?.downloadPaired?.(videoUrl, funscriptUrl, topic.title)
+        .catch(e => addToast(`Paired download failed: ${e.message}`, 'error'))
+    } else {
+      handleDownload(videoUrl, videoFilename)
+    }
+  }
+
   return (
     <div
       style={{
@@ -309,7 +327,18 @@ function RightPanel({ topic }) {
         background: 'rgba(255,255,255,0.02)',
       }}
     >
-      <Panel title="Scripts">
+      {canPlay && navigateTo && (
+        <Button
+          variant="primary"
+          size="md"
+          icon="play"
+          onClick={() => navigateTo('player', { topic })}
+          style={{ width: '100%' }}
+        >
+          Play
+        </Button>
+      )}
+      <Panel title="Scripts" first>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
           {funscripts.length ? (
             funscripts.map((f, i) => (
@@ -447,7 +476,9 @@ function RightPanel({ topic }) {
                       <Icon name="external" size={12} /> Open
                     </a>
                     <button
-                      onClick={() => handleDownload(v.url, `${topic.title} - ${v.service}.mp4`)}
+                      onClick={() =>
+                        handleDownloadPaired(v.url, `${topic.title} - ${v.service}.mp4`)
+                      }
                       disabled={btnDisabled}
                       title={hasFailed ? failed[v.url] : undefined}
                       style={{
@@ -626,9 +657,12 @@ function ReplyBox({ topicId, onReply }) {
   )
 }
 
-export default function TopicDetail({ topicId, goBack }) {
+export default function TopicDetail({ topicId, goBack, navigateTo }) {
   const [topic, setTopic] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [liked, setLiked] = useState(false)
+  const [likeCount, setLikeCount] = useState(0)
+  const [liking, setLiking] = useState(false)
 
   function loadTopic() {
     if (!topicId) return
@@ -637,7 +671,11 @@ export default function TopicDetail({ topicId, goBack }) {
     window.electronAPI
       ?.getTopicDetails?.(topicId)
       .then(r => {
-        if (r?.success) setTopic(r.data)
+        if (r?.success) {
+          setTopic(r.data)
+          setLiked(r.data.mainPost?.currentUserLiked ?? false)
+          setLikeCount(r.data.likeCount ?? 0)
+        }
       })
       .finally(() => setLoading(false))
   }
@@ -645,6 +683,27 @@ export default function TopicDetail({ topicId, goBack }) {
   useEffect(() => {
     loadTopic()
   }, [topicId]) // loadTopic is stable per topicId — intentionally omitted
+
+  async function handleLike() {
+    const postId = topic?.mainPost?.id
+    if (!postId || liking) return
+    setLiking(true)
+    const wasLiked = liked
+    setLiked(!wasLiked)
+    setLikeCount(c => c + (wasLiked ? -1 : 1))
+    try {
+      if (wasLiked) {
+        await window.electronAPI.unlikePost(postId)
+      } else {
+        await window.electronAPI.likePost(postId)
+      }
+    } catch {
+      setLiked(wasLiked)
+      setLikeCount(c => c + (wasLiked ? 1 : -1))
+    } finally {
+      setLiking(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -691,7 +750,7 @@ export default function TopicDetail({ topicId, goBack }) {
       value: topic.downloads?.rankedVideos?.length ?? topic.downloads?.videos?.length ?? 0,
     },
     { label: 'Replies', value: topic.comments?.length ?? Math.max(0, (topic.postsCount ?? 1) - 1) },
-    { label: 'Likes', value: topic.likeCount ?? 0 },
+    { label: 'Likes', value: likeCount },
     { label: 'Views', value: topic.views ?? 0 },
   ]
 
@@ -830,6 +889,38 @@ export default function TopicDetail({ topicId, goBack }) {
                   · {new Date(topic.createdAt).toLocaleDateString()}
                 </span>
               )}
+              <div style={{ flex: 1 }} />
+              <button
+                onClick={handleLike}
+                disabled={liking || !topic.mainPost?.id}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '7px 14px',
+                  borderRadius: 99,
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: liking ? 'wait' : 'pointer',
+                  border: '1px solid',
+                  transition: 'all 0.15s ease',
+                  background: liked ? 'rgba(239,68,68,0.15)' : 'rgba(255,255,255,0.05)',
+                  borderColor: liked ? 'rgba(239,68,68,0.5)' : 'var(--glass-border)',
+                  color: liked ? '#ef4444' : 'var(--text-faint)',
+                }}
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill={liked ? 'currentColor' : 'none'}
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+                {likeCount > 0 ? likeCount : ''} {liked ? 'Liked' : 'Like'}
+              </button>
             </div>
 
             {/* Stats with count-ups */}
@@ -905,7 +996,7 @@ export default function TopicDetail({ topicId, goBack }) {
         <ReplyBox topicId={topic.id} onReply={loadTopic} />
       </div>
 
-      <RightPanel topic={topic} />
+      <RightPanel topic={topic} navigateTo={navigateTo} />
     </div>
   )
 }

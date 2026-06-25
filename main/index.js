@@ -1,10 +1,13 @@
-const { app, BrowserWindow, ipcMain, shell, session } = require('electron')
+const { app, BrowserWindow, ipcMain, shell, session, protocol, net } = require('electron')
+const { pathToFileURL } = require('url')
 const { createMainWindow, createLoginWindow, getMainWindow, getLoginWindow } = require('./window')
 const { setupTopicsHandlers } = require('./ipc/topics.handler')
 const { setupAuthHandlers } = require('./ipc/auth.handler')
 const { setupDownloadHandlers } = require('./ipc/download.handler')
 const { setupAdBlockerHandlers } = require('./ipc/adblocker.handler')
 const { setupNotificationsHandlers } = require('./ipc/notifications.handler')
+const { setupPlayerHandlers } = require('./ipc/player.handler')
+const { cleanupTempFiles, getTempDir } = require('./services/stream.service')
 const authService = require('./services/auth.service')
 const adBlockerService = require('./services/adblocker.service')
 const updateService = require('./services/update.service')
@@ -15,6 +18,12 @@ const fs = require('fs')
 const path = require('path')
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
+// Must be called before app is ready
+protocol.registerSchemesAsPrivileged([
+  { scheme: 'tempfile', privileges: { secure: true, supportFetchAPI: true, stream: true } },
+  { scheme: 'localfile', privileges: { secure: true, supportFetchAPI: true, stream: true } },
+])
+
 if (require('electron-squirrel-startup')) {
   app.quit()
 }
@@ -32,6 +41,36 @@ async function initialize() {
   setupDownloadHandlers()
   setupAdBlockerHandlers()
   setupNotificationsHandlers()
+  setupPlayerHandlers()
+
+  // Serve temp video files to the renderer via tempfile://local/<filename>
+  protocol.handle('tempfile', request => {
+    const filename = decodeURIComponent(new URL(request.url).pathname.slice(1))
+    const filePath = require('path').join(getTempDir(), filename)
+    return net.fetch(pathToFileURL(filePath).toString())
+  })
+
+  // Serve arbitrary local files to the renderer via localfile://<absolute-path>
+  protocol.handle('localfile', request => {
+    const raw = decodeURIComponent(new URL(request.url).pathname)
+    // On Windows paths come in as /C:/foo/bar — strip the leading slash
+    const filePath = process.platform === 'win32' ? raw.replace(/^\//, '') : raw
+    return net.fetch(pathToFileURL(filePath).toString())
+  })
+
+  // IPC: read a local file as text (used by LibraryView to parse funscripts)
+  ipcMain.handle('read-local-file', async (_event, { filePath }) => {
+    try {
+      const text = fs.readFileSync(filePath, 'utf8')
+      return { success: true, data: text }
+    } catch (error) {
+      return { success: false, error: error.message }
+    }
+  })
+
+  app.on('will-quit', () => {
+    cleanupTempFiles()
+  })
 
   // Initialize adblocker (async now with EasyList download)
   await adBlockerService.initialize()

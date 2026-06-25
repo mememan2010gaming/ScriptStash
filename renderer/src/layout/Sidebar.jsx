@@ -10,6 +10,7 @@ const NAV = [
   { id: 'search', view: 'search', label: 'Search', icon: 'search' },
   { id: 'downloads', view: 'downloads', label: 'Downloads', icon: 'download' },
   { id: 'notifications', view: 'notifications', label: 'Notifications', icon: 'bell' },
+  { id: 'library', view: 'library', label: 'Script Player', icon: 'play' },
 ]
 
 const ITEM_H = 46
@@ -51,7 +52,7 @@ export default function Sidebar({ currentView, currentCategory, navigateTo }) {
     ind.style.opacity = '1'
     ind.style.transform = `translateY(${target}px)`
     if (prevIndex.current >= 0 && !reduceMotion) {
-      animate(ind, { scaleY: [0.72, 1], duration: 460, ease: 'easeOutElastic(1, .7)' })
+      animate(ind, { scaleY: [0.85, 1], duration: 460, ease: 'outExpo' })
     }
     prevIndex.current = activeIndex
   }, [activeIndex])

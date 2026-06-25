@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import Button from './common/Button'
+import Button from '../design-system/components/Button'
 
 function formatBytes(bytes) {
   if (!bytes) return '—'
@@ -53,7 +53,7 @@ export default function MegaFolderPicker({ folderName, files, onConfirm, onCance
     >
       <div
         style={{
-          background: 'var(--surface-1)',
+          background: 'var(--glass-strong)',
           border: '1px solid var(--border)',
           borderRadius: 'var(--radius-md)',
           width: 480,

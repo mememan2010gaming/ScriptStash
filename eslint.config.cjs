@@ -7,7 +7,15 @@ const compat = new FlatCompat({
 module.exports = [
   // Global ignore patterns (replaces .eslintignore)
   {
-    ignores: ['node_modules/**', 'out/**', 'dist/**', '**/dist/**', 'coverage/**', '*.config.js'],
+    ignores: [
+      'node_modules/**',
+      'out/**',
+      'dist/**',
+      '**/dist/**',
+      'coverage/**',
+      '*.config.js',
+      'e2e/**',
+    ],
   },
 
   // Include shareable configs via FlatCompat

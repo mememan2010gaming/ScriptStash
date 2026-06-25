@@ -258,7 +258,8 @@ class DownloadService {
    */
   async downloadVideo(url, filename, window, downloadId) {
     const sanitizedFilename = this.sanitizeFilename(filename || 'video.mp4')
-    const outputTemplate = path.join(this.downloadPath, '%(title)s.%(ext)s')
+    // Each video gets its own subfolder: <dlpath>/<title>/<title>.ext
+    const outputTemplate = path.join(this.downloadPath, '%(title)s', '%(title)s.%(ext)s')
 
     if (this.activeDownloads.has(url)) {
       return { error: 'File is already being downloaded' }
@@ -723,20 +724,55 @@ class DownloadService {
   }
 
   /**
+   * Download video + funscript as a paired set.
+   * Video downloads first; funscript is then saved with the same basename into the same folder.
+   */
+  async downloadPaired(videoUrl, funscriptUrl, topicTitle, window, downloadId) {
+    // 1. Download video (uses subfolder template, captures resolved path)
+    await this.downloadFile(videoUrl, topicTitle, window, downloadId)
+    if (!funscriptUrl) return { success: true }
+
+    // Find the folder that yt-dlp created for this title
+    const safeTitle = this.sanitizeFilename(topicTitle)
+    const videoDir = path.join(this.downloadPath, safeTitle)
+    const exists = fs.existsSync(videoDir) && fs.statSync(videoDir).isDirectory()
+    const destDir = exists ? videoDir : this.downloadPath
+
+    // Find the video file to determine exact basename yt-dlp used
+    let baseTitle = safeTitle
+    if (exists) {
+      const files = fs.readdirSync(videoDir).filter(f => {
+        const ext = path.extname(f).toLowerCase()
+        return ['.mp4', '.webm', '.mkv', '.avi', '.mov'].includes(ext)
+      })
+      if (files.length === 1) baseTitle = path.basename(files[0], path.extname(files[0]))
+    }
+
+    const funscriptFilename = `${baseTitle}.funscript`
+    const fsDownloadId = `${downloadId}-fs`
+
+    await this.downloadDirect(funscriptUrl, funscriptFilename, window, fsDownloadId, null, destDir)
+    return { success: true }
+  }
+
+  /**
    * Direct HTTP download
    * @param {string} url - The download URL (may be API URL)
    * @param {string} filename - The filename to save as
    * @param {BrowserWindow} window - Window for progress updates
    * @param {string} downloadId - Unique download ID
    * @param {string} originalUrl - Original URL for tracking (optional, defaults to url)
+   * @param {string} destDir - Override output directory (optional)
    */
-  async downloadDirect(url, filename, window, downloadId, originalUrl = null) {
+  async downloadDirect(url, filename, window, downloadId, originalUrl = null, destDir = null) {
     // Use original URL for tracking if provided
     const trackingUrl = originalUrl || url
 
     // Sanitize filename
     const sanitizedFilename = this.sanitizeFilename(filename)
-    const filePath = path.join(this.downloadPath, sanitizedFilename)
+    const outputDir = destDir || this.downloadPath
+    if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true })
+    const filePath = path.join(outputDir, sanitizedFilename)
 
     // Check if already downloading
     if (this.activeDownloads.has(trackingUrl)) {

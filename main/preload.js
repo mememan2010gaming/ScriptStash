@@ -8,6 +8,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   parseTopicUrl: url => ipcRenderer.invoke('parse-topic-url', { url }),
   getTopicDetails: topicId => ipcRenderer.invoke('get-topic-details', { topicId }),
   createPost: (topicId, raw) => ipcRenderer.invoke('create-post', { topicId, raw }),
+  likePost: postId => ipcRenderer.invoke('like-post', { postId }),
+  unlikePost: postId => ipcRenderer.invoke('unlike-post', { postId }),
   getUserProfile: username => ipcRenderer.invoke('get-user-profile', { username }),
   updateMutedTags: (username, mutedTags) =>
     ipcRenderer.invoke('update-muted-tags', { username, mutedTags }),
@@ -26,18 +28,37 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Downloads
   downloadFile: (url, filename, nodeId = null) =>
     ipcRenderer.invoke('download-file', { url, filename, nodeId }),
+  downloadPaired: (videoUrl, funscriptUrl, topicTitle) =>
+    ipcRenderer.invoke('download-paired', { videoUrl, funscriptUrl, topicTitle }),
   getMegaFolderFiles: url => ipcRenderer.invoke('mega:get-folder-files', { url }),
   openExternal: url => ipcRenderer.invoke('open-external', url),
   getDownloadPath: () => ipcRenderer.invoke('get-download-path'),
   setDownloadPath: path => ipcRenderer.invoke('set-download-path', { path }),
   openFolder: path => ipcRenderer.invoke('open-folder', { path }),
   getDownloadHistory: () => ipcRenderer.invoke('get-download-history'),
+  getLibraryPath: () => ipcRenderer.invoke('get-library-path'),
+  setLibraryPath: newPath => ipcRenderer.invoke('set-library-path', { path: newPath }),
+  scanLibrary: opts => ipcRenderer.invoke('scan-library', opts || {}),
+  pickLocalFile: filters => ipcRenderer.invoke('pick-local-file', { filters }),
+  readLocalFile: filePath => ipcRenderer.invoke('read-local-file', { filePath }),
+  onLibraryScanProgress: cb => ipcRenderer.on('library:scan-progress', (_e, data) => cb(data)),
+  onLibraryScanComplete: cb => ipcRenderer.on('library:scan-complete', (_e, data) => cb(data)),
+  offLibraryScan: () => {
+    ipcRenderer.removeAllListeners('library:scan-progress')
+    ipcRenderer.removeAllListeners('library:scan-complete')
+  },
   clearDownloadHistory: () => ipcRenderer.invoke('clear-download-history'),
   verifyUrl: url => ipcRenderer.invoke('verify-url', { url }),
   getMaxDownloads: () => ipcRenderer.invoke('get-max-downloads'),
   setMaxDownloads: max => ipcRenderer.invoke('set-max-downloads', { max }),
   getYtDlpVersion: () => ipcRenderer.invoke('get-ytdlp-version'),
   updateYtDlp: () => ipcRenderer.invoke('update-ytdlp'),
+
+  // Player
+  downloadVideo: url => ipcRenderer.invoke('player:download-video', url),
+  fetchFunscript: url => ipcRenderer.invoke('player:fetch-funscript', url),
+  onVideoProgress: cb => ipcRenderer.on('player:video-progress', (_e, pct, eta) => cb(pct, eta)),
+  offVideoProgress: () => ipcRenderer.removeAllListeners('player:video-progress'),
 
   // Settings
   invoke: (channel, data) => ipcRenderer.invoke(channel, data),

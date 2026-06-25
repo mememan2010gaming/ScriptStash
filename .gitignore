@@ -58,12 +58,13 @@ lerna-debug.log*
 # Playwright
 .playwright-mcp/
 
-# Tooling / AI IDE config (not project-specific)
+# Tooling
 .codegraph/
 .cursor/
 .superpowers/
 .docs/superpowers/
 CLAUDE.md
+.github/hooks/impeccable.json
 
 # Screenshot artifacts
 /*.png
@@ -123,4 +124,18 @@ local.config.js
 # Tool metadata
 .headroom
 .serena
+.impeccable/
 docs/
+
+# Generated design/product docs (impeccable tool output)
+DESIGN.md
+PRODUCT.md
+
+# Dumped configs (tool output, not source)
+config-dump.json
+
+# Playwright E2E tests (local only)
+e2e/
+playwright-report/
+test-results/
+playwright.config.js

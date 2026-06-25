@@ -190,6 +190,26 @@ function setupTopicsHandlers() {
       return { success: false, error: error.message }
     }
   })
+
+  ipcMain.handle('like-post', async (event, { postId }) => {
+    try {
+      await apiService.likePost(postId)
+      return { success: true }
+    } catch (error) {
+      console.error('Error liking post:', error.message)
+      return { success: false, error: error.message }
+    }
+  })
+
+  ipcMain.handle('unlike-post', async (event, { postId }) => {
+    try {
+      await apiService.unlikePost(postId)
+      return { success: true }
+    } catch (error) {
+      console.error('Error unliking post:', error.message)
+      return { success: false, error: error.message }
+    }
+  })
 }
 
 module.exports = { setupTopicsHandlers }

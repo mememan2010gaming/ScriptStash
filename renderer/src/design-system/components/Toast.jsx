@@ -1,10 +1,15 @@
 import { useEffect, useRef } from 'react'
 import { animate } from 'animejs'
 import { useToast } from '../../contexts/ToastContext'
+import Icon from './Icon'
+
+const TYPE_ICON = { success: 'check', error: 'close', info: 'bolt' }
+const TYPE_COLOR = { success: 'var(--green)', error: 'var(--red)', info: 'var(--accent)' }
 
 function ToastItem({ toast }) {
   const ref = useRef(null)
-  const colors = { success: 'var(--green)', error: 'var(--red)', info: 'var(--accent)' }
+  const iconName = TYPE_ICON[toast.type] || TYPE_ICON.info
+  const iconColor = TYPE_COLOR[toast.type] || TYPE_COLOR.info
 
   useEffect(() => {
     if (!ref.current) return
@@ -12,7 +17,7 @@ function ToastItem({ toast }) {
       opacity: [0, 1],
       translateY: [-8, 0],
       duration: 200,
-      ease: 'easeOutQuad',
+      ease: 'outExpo',
     })
   }, [])
 
@@ -25,15 +30,17 @@ function ToastItem({ toast }) {
         gap: 10,
         padding: '10px 14px',
         borderRadius: 'var(--radius)',
-        background: 'var(--surface-2)',
-        border: '1px solid var(--border)',
-        boxShadow: 'var(--shadow)',
+        background: 'var(--glass-strong)',
+        backdropFilter: `blur(var(--glass-blur)) saturate(var(--glass-saturate))`,
+        border: '1px solid var(--glass-border-bright)',
         opacity: 0,
-        borderLeft: `3px solid ${colors[toast.type] || colors.info}`,
         minWidth: 240,
         maxWidth: 360,
       }}
     >
+      <span style={{ color: iconColor, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+        <Icon name={iconName} size={15} stroke={2.2} />
+      </span>
       <span style={{ color: 'var(--text)', fontSize: 13, flex: 1 }}>{toast.message}</span>
       {toast.action && (
         <button
@@ -69,7 +76,7 @@ export default function ToastContainer() {
         display: 'flex',
         flexDirection: 'column',
         gap: 8,
-        zIndex: 9999,
+        zIndex: 'var(--z-toast)',
         pointerEvents: 'none',
       }}
     >
