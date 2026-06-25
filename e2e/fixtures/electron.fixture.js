@@ -180,7 +180,8 @@ async function launchApp() {
 // override-heavy tests in error-states.spec.js don't pollute later tests.
 const test = base.extend({
   electronApp: [
-    async (_, use) => {
+    // prettier-ignore
+    async ({}, use) => { // eslint-disable-line no-empty-pattern
       const { electronApp } = await launchApp()
       await use(electronApp)
       await electronApp.close()
