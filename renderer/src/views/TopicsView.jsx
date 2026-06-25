@@ -717,6 +717,14 @@ export default function TopicsView({ category, navigateTo }) {
         setHasMore(more)
         setPage(p)
 
+        // Preload current-page thumbnails into browser cache
+        next.forEach(t => {
+          if (t.thumbnail) {
+            const img = new Image()
+            img.src = t.thumbnail
+          }
+        })
+
         // Kick off next-page prefetch immediately
         if (more) prefetch(p + 1, sort)
       } catch (e) {
@@ -843,10 +851,7 @@ export default function TopicsView({ category, navigateTo }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      <ViewHeader
-        title={title}
-        right={<Segmented tabs={TABS} value={tab} onChange={setTab} />}
-      >
+      <ViewHeader title={title} right={<Segmented tabs={TABS} value={tab} onChange={setTab} />}>
         <div style={{ marginTop: 18, position: 'relative' }}>
           <span
             style={{
@@ -912,7 +917,11 @@ export default function TopicsView({ category, navigateTo }) {
               </span>
               {searchResults && (
                 <button
-                  onClick={() => { setSearch(''); setApiQuery(''); setSearchResults(null); }}
+                  onClick={() => {
+                    setSearch('')
+                    setApiQuery('')
+                    setSearchResults(null)
+                  }}
                   style={{
                     background: 'none',
                     border: 'none',
@@ -1008,6 +1017,7 @@ export default function TopicsView({ category, navigateTo }) {
         ) : (
           <div
             ref={gridRef}
+            data-density={density}
             style={{
               display: 'grid',
               gridTemplateColumns:
