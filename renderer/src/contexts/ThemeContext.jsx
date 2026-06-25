@@ -10,7 +10,7 @@ function resolveInitialDensity() {
   } catch {
     /* localStorage unavailable */
   }
-  return 'mosaic'
+  return 'list'
 }
 
 const ThemeContext = createContext(null)
