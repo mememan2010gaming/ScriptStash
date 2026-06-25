@@ -65,7 +65,6 @@ jobs:
 
   # Run Playwright e2e tests against the built Electron app
   test-e2e:
-    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
