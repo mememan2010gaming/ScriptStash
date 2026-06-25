@@ -1,5 +1,37 @@
 # Changelog
 
+## 2.5.x — Script Player & Local Library
+
+### Script Player
+
+- **Built-in script player** — play a video synced to its funscript directly inside ScriptStash, no external software required.
+- Video downloads to a temp file automatically before playback so streaming is smooth.
+- **Intiface Central integration** — connect to Intiface Central over WebSocket and send position commands to your devices in real time as the script plays.
+- **Script timeline** — visual funscript heatmap scrubs along with the video so you can see upcoming strokes at a glance.
+- **Offset control** — fine-tune script-to-video sync with millisecond-precision offset adjustment.
+- HLS stream support via hls.js for topics with adaptive streaming links.
+- Load a local `.funscript` file if the topic's script can't be fetched automatically.
+
+### Local Library
+
+- **Library scan** — point ScriptStash at a local folder and it indexes all funscript/video pairs automatically.
+- Async scan with a live progress indicator; results appear as files are found.
+- Library cards show **video thumbnails** generated from local files.
+- Heatmap previews rendered per card so you can gauge a script's intensity before opening it.
+- Instant local search across your indexed library.
+- `localfile://` custom protocol handles paths with spaces and special characters correctly.
+
+### Fixes & Polish
+
+- Toast notifications redesigned with glass-panel style matching the rest of the app.
+- Banned-pattern scrubbing removed from topic content.
+- Typography cleanup across detail and player views.
+- Fixed `localfile://` URL encoding for paths containing spaces and special characters.
+- Fixed CSP to allow external media sources and local file access for the player.
+- Stream URL extraction (`getStreamUrl`) added to the stream service and exposed over IPC.
+
+---
+
 ## 2.4.x
 
 ### New Features

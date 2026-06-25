@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useTheme } from '../contexts/ThemeContext'
 import { useToast } from '../contexts/ToastContext'
 import Icon from '../design-system/components/Icon'
+import Segmented from '../design-system/components/Segmented'
 import './Credits.css'
 
 const SECTIONS = [
@@ -223,7 +224,7 @@ function ChangelogRenderer({ markdown }) {
 
 export default function SettingsView({ activeSection, onSectionChange }) {
   const [section, setSection] = useState(activeSection || 'appearance')
-  const { theme, setTheme, themes } = useTheme()
+  const { theme, setTheme, themes, density, setDensity } = useTheme()
   const { addToast } = useToast()
   const [settings, setSettings] = useState({})
   const [user, setUser] = useState(null)
@@ -520,6 +521,19 @@ export default function SettingsView({ activeSection, onSectionChange }) {
                   </div>
                 </button>
               ))}
+            </div>
+
+            <div style={{ marginTop: 28 }}>
+              <SectionLabel>Density</SectionLabel>
+              <Segmented
+                tabs={[
+                  { id: 'mosaic', label: 'Mosaic' },
+                  { id: 'list', label: 'List' },
+                  { id: 'compact', label: 'Compact' },
+                ]}
+                value={density}
+                onChange={setDensity}
+              />
             </div>
           </div>
         )}

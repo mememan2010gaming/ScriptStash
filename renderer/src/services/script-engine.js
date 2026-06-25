@@ -1,5 +1,7 @@
 import { DeviceOutput, OutputType } from 'buttplug'
 
+let _diagCount = 0
+
 function findActionIndex(actions, timeMs) {
   if (actions.length === 0) return -1
   let lo = 0
@@ -18,15 +20,36 @@ function findActionIndex(actions, timeMs) {
 }
 
 async function sendToDevices(devices, durationMs, position) {
+  const diag = _diagCount < 3
+  if (diag) {
+    _diagCount++
+    console.log(
+      `[script-engine] sendToDevices called: ${devices.length} device(s), pos=${position.toFixed(3)}, dur=${durationMs}ms`
+    )
+  }
   for (const device of devices) {
     try {
-      if (device.hasOutput(OutputType.HwPositionWithDuration)) {
-        await device.runOutput(DeviceOutput.HwPositionWithDuration.value(position, durationMs))
-      } else if (device.hasOutput(OutputType.Position)) {
-        await device.runOutput(DeviceOutput.Position.value(position))
+      const supportsHwPos = device.hasOutput(OutputType.HwPositionWithDuration)
+      const supportsPos = device.hasOutput(OutputType.Position)
+      if (diag) {
+        const featureTypes = [...(device.features?.values() ?? [])].map(f =>
+          JSON.stringify(f._feature?.Output ?? {})
+        )
+        console.log(
+          `[script-engine] device "${device.name}": HwPos=${supportsHwPos}, Pos=${supportsPos}, features=${featureTypes.join(' | ')}`
+        )
       }
-    } catch {
-      // Device disconnected or busy — ignore, will be cleaned up via deviceremoved event
+      if (supportsHwPos) {
+        await device.runOutput(DeviceOutput.HwPositionWithDuration.value(position, durationMs))
+      } else if (supportsPos) {
+        await device.runOutput(DeviceOutput.Position.value(position))
+      } else if (diag) {
+        console.warn(
+          `[script-engine] device "${device.name}" has no supported linear output type — no command sent`
+        )
+      }
+    } catch (err) {
+      console.warn(`[script-engine] device "${device.name}" error:`, err)
     }
   }
 }
@@ -48,7 +71,13 @@ export function createScriptEngine({ videoEl, actions, getOffsetMs, devicesRef }
       cursor = idx
       const durationMs = Math.max(1, actions[idx + 1].at - actions[idx].at)
       const targetPos = actions[idx + 1].pos / 99
-      sendToDevices(devicesRef.current ?? [], durationMs, targetPos)
+      const devs = devicesRef.current ?? []
+      if (_diagCount < 3) {
+        console.log(
+          `[script-engine] tick firing: idx=${idx}, devices=${devs.length}, pos=${targetPos.toFixed(3)}, dur=${durationMs}ms`
+        )
+      }
+      sendToDevices(devs, durationMs, targetPos)
     }
 
     rafId = requestAnimationFrame(tick)
