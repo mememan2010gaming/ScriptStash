@@ -139,7 +139,8 @@ async function launchApp() {
 
   // Wait for the first window to fully load before calling evaluate().
   // evaluate() called before domcontentloaded destroys the execution context.
-  const page = await appInstance.firstWindow();
+  // firstWindow() defaults to 30s; CI runners under load need more headroom.
+  const page = await appInstance.firstWindow({ timeout: 60_000 });
   await page.waitForLoadState('domcontentloaded');
 
   // Renderer context is stable — safe to inject mocks now
