@@ -134,8 +134,6 @@ PRODUCT.md
 # Dumped configs (tool output, not source)
 config-dump.json
 
-# Playwright E2E tests (local only)
-e2e/
+# Playwright E2E — test files are tracked; generated output is not
 playwright-report/
 test-results/
-playwright.config.js
