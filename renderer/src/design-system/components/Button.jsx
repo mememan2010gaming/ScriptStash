@@ -13,7 +13,7 @@ const BASE = {
   justifyContent: 'center',
   flexShrink: 0,
   border: 'none',
-  borderRadius: 'var(--radius-md)',
+  borderRadius: 'var(--radius-sm)',
   fontFamily: 'var(--font-ui)',
   fontWeight: 'var(--font-medium)',
   cursor: 'pointer',

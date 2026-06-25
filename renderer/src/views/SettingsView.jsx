@@ -223,7 +223,7 @@ function ChangelogRenderer({ markdown }) {
 
 export default function SettingsView({ activeSection, onSectionChange }) {
   const [section, setSection] = useState(activeSection || 'appearance')
-  const { theme, setTheme, themes } = useTheme()
+  const { theme, setTheme, themes, density, setDensity } = useTheme()
   const { addToast } = useToast()
   const [settings, setSettings] = useState({})
   const [user, setUser] = useState(null)
@@ -520,6 +520,305 @@ export default function SettingsView({ activeSection, onSectionChange }) {
                   </div>
                 </button>
               ))}
+            </div>
+
+            <div style={{ marginTop: 28 }}>
+              <SectionLabel>Density</SectionLabel>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: 14,
+                }}
+              >
+                {/* Mosaic */}
+                <button
+                  onClick={() => setDensity('mosaic')}
+                  className="glass glass-hover"
+                  style={{
+                    padding: 0,
+                    borderRadius: 18,
+                    overflow: 'hidden',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    borderColor: density === 'mosaic' ? 'var(--accent)' : 'var(--glass-border)',
+                    boxShadow:
+                      density === 'mosaic'
+                        ? '0 0 0 1px var(--accent), 0 10px 30px var(--accent-glow)'
+                        : 'var(--glass-shadow)',
+                  }}
+                >
+                  <div
+                    style={{
+                      height: 88,
+                      padding: 10,
+                      background: 'rgba(0,0,0,0.28)',
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr',
+                      gap: 5,
+                    }}
+                  >
+                    {[0, 1, 2, 3].map(i => (
+                      <div
+                        key={i}
+                        style={{
+                          borderRadius: 5,
+                          overflow: 'hidden',
+                          background: 'rgba(255,255,255,0.05)',
+                          border: '1px solid rgba(255,255,255,0.09)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                        }}
+                      >
+                        <div style={{ flex: '0 0 55%', background: 'rgba(255,255,255,0.11)' }} />
+                        <div
+                          style={{
+                            flex: 1,
+                            padding: '3px 4px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 2,
+                          }}
+                        >
+                          <div
+                            style={{
+                              height: 3,
+                              borderRadius: 2,
+                              background: 'rgba(255,255,255,0.28)',
+                              width: '85%',
+                            }}
+                          />
+                          <div
+                            style={{
+                              height: 2,
+                              borderRadius: 2,
+                              background: 'rgba(255,255,255,0.12)',
+                              width: '55%',
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ padding: '11px 14px' }}>
+                    <div
+                      style={{
+                        fontSize: 13.5,
+                        fontWeight: 700,
+                        color: 'var(--text)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 7,
+                      }}
+                    >
+                      Mosaic
+                      {density === 'mosaic' && (
+                        <Icon name="check" size={14} style={{ color: 'var(--accent-2)' }} />
+                      )}
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+                      Thumbnail tile grid
+                    </div>
+                  </div>
+                </button>
+
+                {/* List */}
+                <button
+                  onClick={() => setDensity('list')}
+                  className="glass glass-hover"
+                  style={{
+                    padding: 0,
+                    borderRadius: 18,
+                    overflow: 'hidden',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    borderColor: density === 'list' ? 'var(--accent)' : 'var(--glass-border)',
+                    boxShadow:
+                      density === 'list'
+                        ? '0 0 0 1px var(--accent), 0 10px 30px var(--accent-glow)'
+                        : 'var(--glass-shadow)',
+                  }}
+                >
+                  <div
+                    style={{
+                      height: 88,
+                      padding: 10,
+                      background: 'rgba(0,0,0,0.28)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 5,
+                    }}
+                  >
+                    {[0, 1, 2].map(i => (
+                      <div
+                        key={i}
+                        style={{
+                          flex: 1,
+                          borderRadius: 5,
+                          overflow: 'hidden',
+                          background: 'rgba(255,255,255,0.05)',
+                          border: '1px solid rgba(255,255,255,0.09)',
+                          display: 'flex',
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: '30%',
+                            flexShrink: 0,
+                            background: 'rgba(255,255,255,0.13)',
+                          }}
+                        />
+                        <div
+                          style={{
+                            flex: 1,
+                            padding: '4px 6px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center',
+                            gap: 3,
+                          }}
+                        >
+                          <div
+                            style={{
+                              height: 3,
+                              borderRadius: 2,
+                              background: 'rgba(255,255,255,0.28)',
+                              width: '88%',
+                            }}
+                          />
+                          <div
+                            style={{
+                              height: 2,
+                              borderRadius: 2,
+                              background: 'rgba(255,255,255,0.12)',
+                              width: '58%',
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ padding: '11px 14px' }}>
+                    <div
+                      style={{
+                        fontSize: 13.5,
+                        fontWeight: 700,
+                        color: 'var(--text)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 7,
+                      }}
+                    >
+                      List
+                      {density === 'list' && (
+                        <Icon name="check" size={14} style={{ color: 'var(--accent-2)' }} />
+                      )}
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+                      Wide rows with preview
+                    </div>
+                  </div>
+                </button>
+
+                {/* Compact */}
+                <button
+                  onClick={() => setDensity('compact')}
+                  className="glass glass-hover"
+                  style={{
+                    padding: 0,
+                    borderRadius: 18,
+                    overflow: 'hidden',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    borderColor: density === 'compact' ? 'var(--accent)' : 'var(--glass-border)',
+                    boxShadow:
+                      density === 'compact'
+                        ? '0 0 0 1px var(--accent), 0 10px 30px var(--accent-glow)'
+                        : 'var(--glass-shadow)',
+                  }}
+                >
+                  <div
+                    style={{
+                      height: 88,
+                      padding: 10,
+                      background: 'rgba(0,0,0,0.28)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 4,
+                    }}
+                  >
+                    {[0, 1, 2, 3, 4].map(i => (
+                      <div
+                        key={i}
+                        style={{
+                          flex: 1,
+                          borderRadius: 4,
+                          overflow: 'hidden',
+                          background: 'rgba(255,255,255,0.05)',
+                          border: '1px solid rgba(255,255,255,0.09)',
+                          display: 'flex',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: 18,
+                            height: '100%',
+                            flexShrink: 0,
+                            background: 'rgba(255,255,255,0.13)',
+                          }}
+                        />
+                        <div
+                          style={{
+                            flex: 1,
+                            padding: '0 5px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 2,
+                          }}
+                        >
+                          <div
+                            style={{
+                              height: 2.5,
+                              borderRadius: 2,
+                              background: 'rgba(255,255,255,0.28)',
+                              width: '80%',
+                            }}
+                          />
+                          <div
+                            style={{
+                              height: 2,
+                              borderRadius: 2,
+                              background: 'rgba(255,255,255,0.1)',
+                              width: '45%',
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ padding: '11px 14px' }}>
+                    <div
+                      style={{
+                        fontSize: 13.5,
+                        fontWeight: 700,
+                        color: 'var(--text)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 7,
+                      }}
+                    >
+                      Compact
+                      {density === 'compact' && (
+                        <Icon name="check" size={14} style={{ color: 'var(--accent-2)' }} />
+                      )}
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+                      Dense list, more at a glance
+                    </div>
+                  </div>
+                </button>
+              </div>
             </div>
           </div>
         )}

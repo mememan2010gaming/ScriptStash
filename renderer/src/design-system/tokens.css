@@ -52,7 +52,7 @@
   /* ---- Text ---- */
   --text: #f5ecf0;
   --text-muted: rgba(245, 236, 240, 0.58);
-  --text-faint: rgba(245, 236, 240, 0.34);
+  --text-faint: rgba(245, 236, 240, 0.60);
   --text-primary: #f5ecf0;
 
   /* ---- Accent: rose (overridden by ThemeContext) ---- */

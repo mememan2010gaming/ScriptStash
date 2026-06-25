@@ -28,6 +28,8 @@ if (require('electron-squirrel-startup')) {
   app.quit()
 }
 
+const isTestMode = process.argv.includes('--test-mode')
+
 // Keep a global reference of the window object
 
 let mainWindow = null
@@ -71,6 +73,13 @@ async function initialize() {
   app.on('will-quit', () => {
     cleanupTempFiles()
   })
+
+  // In test mode skip auth, adblocker init, update checks, and yt-dlp updates —
+  // all IPC handlers are mocked by the fixture so none of these are needed.
+  if (isTestMode) {
+    mainWindow = createMainWindow()
+    return
+  }
 
   // Initialize adblocker (async now with EasyList download)
   await adBlockerService.initialize()

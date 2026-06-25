@@ -2,11 +2,20 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { animate, stagger } from 'animejs'
 import Icon from '../design-system/components/Icon'
 import Skeleton from '../design-system/components/Skeleton'
+import Segmented from '../design-system/components/Segmented'
+import { useTheme } from '../contexts/ThemeContext'
 
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 // Persists scroll positions across category/tab switches without prop-drilling
 const scrollPositions = {}
+
+function fmtNum(n) {
+  if (!n) return null
+  if (n >= 1000000) return `${(n / 1000000).toFixed(1).replace(/\.0$/, '')}m`
+  if (n >= 1000) return `${(n / 1000).toFixed(1).replace(/\.0$/, '')}k`
+  return String(n)
+}
 
 const TABS = [
   { id: 'latest', label: 'Latest' },
@@ -25,72 +34,59 @@ function useLiquidGlass() {
   return { ref, onMouseMove: onMove }
 }
 
-function Segmented({ tabs, value, onChange }) {
-  const wrapRef = useRef(null)
-  const indRef = useRef(null)
-
-  useEffect(() => {
-    const wrap = wrapRef.current
-    const ind = indRef.current
-    if (!wrap || !ind) return
-    const btns = wrap.querySelectorAll('[data-seg]')
-    const idx = tabs.findIndex(t => t.id === value)
-    const el = btns[idx]
-    if (!el) return
-    ind.style.left = el.offsetLeft + 'px'
-    ind.style.width = el.offsetWidth + 'px'
-  }, [value, tabs])
-
+function TagPill({ label, style: extraStyle }) {
   return (
-    <div
-      ref={wrapRef}
-      className="glass"
+    <span
       style={{
-        position: 'relative',
-        display: 'flex',
-        gap: 2,
-        padding: 4,
-        borderRadius: 14,
-        flexShrink: 0,
+        fontSize: 10,
+        fontWeight: 700,
+        padding: '2px 7px',
+        borderRadius: 99,
+        textTransform: 'uppercase',
+        letterSpacing: '0.03em',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        background: 'var(--glass-active)',
+        border: '1px solid var(--glass-border)',
+        color: 'var(--text-muted)',
+        ...extraStyle,
       }}
     >
-      <div
-        ref={indRef}
-        style={{
-          position: 'absolute',
-          top: 4,
-          bottom: 4,
-          left: 4,
-          width: 60,
-          borderRadius: 10,
-          zIndex: 0,
-          background: 'var(--accent-gradient)',
-          boxShadow: '0 4px 14px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,0.35)',
-          transition: 'left var(--t), width var(--t)',
-        }}
-      />
-      {tabs.map(t => (
-        <button
-          key={t.id}
-          data-seg
-          onClick={() => onChange(t.id)}
-          style={{
-            position: 'relative',
-            zIndex: 1,
-            padding: '7px 16px',
-            border: 'none',
-            background: 'transparent',
-            cursor: 'pointer',
-            fontSize: 13,
-            fontWeight: 700,
-            borderRadius: 10,
-            color: value === t.id ? 'var(--on-accent)' : 'var(--text-muted)',
-            transition: 'color var(--t)',
-          }}
-        >
-          {t.label}
-        </button>
-      ))}
+      {label}
+    </span>
+  )
+}
+
+function StatRow({ topic, size = 13, gap = 14 }) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        gap,
+        fontSize: size,
+        color: 'var(--text-faint)',
+        alignItems: 'center',
+      }}
+    >
+      {topic.views > 0 && (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+          <Icon name="eye" size={size} />
+          <span className="num">{fmtNum(topic.views)}</span>
+        </span>
+      )}
+      {topic.postsCount > 0 && (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+          <Icon name="chat" size={size} />
+          <span className="num">{fmtNum(topic.postsCount)}</span>
+        </span>
+      )}
+      {topic.likeCount > 0 && (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+          <Icon name="heart" size={size} />
+          <span className="num">{fmtNum(topic.likeCount)}</span>
+        </span>
+      )}
     </div>
   )
 }
@@ -98,80 +94,84 @@ function Segmented({ tabs, value, onChange }) {
 function TopicCard({ topic, navigateTo }) {
   const liquid = useLiquidGlass()
   const [hover, setHover] = useState(false)
+  const { density } = useTheme()
   const hue = topic.hue ?? topic.id % 360
 
-  return (
-    <button
-      {...liquid}
-      onClick={() => navigateTo('detail', { topicId: topic.id })}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      className="glass glass-sheen"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        width: '100%',
-        textAlign: 'left',
-        padding: 0,
-        cursor: 'pointer',
-        borderRadius: 20,
-        overflow: 'hidden',
-        transform: hover ? 'translateY(-4px)' : 'none',
-        borderColor: hover ? 'var(--glass-border-bright)' : 'var(--glass-border)',
-        boxShadow: hover
-          ? 'var(--shadow-lg), 0 0 0 1px var(--glass-border)'
-          : 'var(--glass-shadow)',
-        transition: 'transform var(--t), border-color var(--t), box-shadow var(--t)',
-      }}
-    >
-      <div
+  const tags = (topic.tags || [])
+    .map(tag => (typeof tag === 'string' ? tag : (tag?.name ?? '')))
+    .filter(Boolean)
+
+  // ── Mosaic (tile grid) ──────────────────────────────────────────────────────
+  if (density === 'mosaic') {
+    return (
+      <button
+        {...liquid}
+        onClick={() => navigateTo('detail', { topicId: topic.id })}
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
+        className="glass glass-sheen"
         style={{
-          height: 148,
-          position: 'relative',
+          display: 'flex',
+          flexDirection: 'column',
+          width: '100%',
+          textAlign: 'left',
+          padding: 0,
+          cursor: 'pointer',
+          borderRadius: 20,
           overflow: 'hidden',
-          flexShrink: 0,
-          background: `linear-gradient(135deg, hsl(${hue},45%,22%), hsl(${(hue + 50) % 360},40%,14%))`,
+          transform: hover ? 'translateY(-4px)' : 'none',
+          borderColor: hover ? 'var(--glass-border-bright)' : 'var(--glass-border)',
+          boxShadow: hover
+            ? 'var(--shadow-lg), 0 0 0 1px var(--glass-border)'
+            : 'var(--glass-shadow)',
+          transition: 'transform var(--t), border-color var(--t), box-shadow var(--t)',
         }}
       >
-        {topic.thumbnail && (
-          <img
-            src={topic.thumbnail}
-            alt=""
-            loading="lazy"
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              display: 'block',
-              transform: hover ? 'scale(1.06)' : 'scale(1)',
-              transition: 'transform var(--t-slow)',
-            }}
-          />
-        )}
         <div
           style={{
-            position: 'absolute',
-            inset: 0,
-            background: 'linear-gradient(to top, rgba(10,7,10,0.85) 0%, transparent 55%)',
+            height: 148,
+            position: 'relative',
+            overflow: 'hidden',
+            flexShrink: 0,
+            background: `linear-gradient(135deg, hsl(${hue},45%,22%), hsl(${(hue + 50) % 360},40%,14%))`,
           }}
-        />
-        {topic.tags?.length > 0 && (
+        >
+          {topic.thumbnail && (
+            <img
+              src={topic.thumbnail}
+              alt=""
+              loading="lazy"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block',
+                transform: hover ? 'scale(1.06)' : 'scale(1)',
+                transition: 'transform var(--t-slow)',
+              }}
+            />
+          )}
           <div
             style={{
               position: 'absolute',
-              bottom: 9,
-              left: 11,
-              right: 11,
-              display: 'flex',
-              gap: 5,
-              flexWrap: 'nowrap',
-              overflow: 'hidden',
+              inset: 0,
+              background: 'linear-gradient(to top, rgba(10,7,10,0.85) 0%, transparent 55%)',
             }}
-          >
-            {topic.tags.slice(0, 2).map(tag => {
-              const label = typeof tag === 'string' ? tag : (tag?.name ?? '')
-              if (!label) return null
-              return (
+          />
+          {tags.length > 0 && (
+            <div
+              style={{
+                position: 'absolute',
+                bottom: 9,
+                left: 11,
+                right: 11,
+                display: 'flex',
+                gap: 5,
+                flexWrap: 'nowrap',
+                overflow: 'hidden',
+              }}
+            >
+              {tags.slice(0, 2).map(label => (
                 <span
                   key={label}
                   style={{
@@ -195,102 +195,359 @@ function TopicCard({ topic, navigateTo }) {
                 >
                   {label}
                 </span>
-              )
-            })}
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div
+          style={{
+            padding: '14px 15px 15px',
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 11,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 14.5,
+              fontWeight: 700,
+              lineHeight: 1.4,
+              color: 'var(--text)',
+              letterSpacing: '-0.01em',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              minHeight: 40,
+            }}
+          >
+            {topic.title}
           </div>
+          {topic.author && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {topic.author.avatar && (
+                <img
+                  src={topic.author.avatar}
+                  alt=""
+                  referrerPolicy="no-referrer"
+                  style={{
+                    width: 22,
+                    height: 22,
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    border: '1px solid var(--glass-border)',
+                  }}
+                />
+              )}
+              <span
+                style={{
+                  fontSize: 12,
+                  color: 'var(--text-muted)',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {topic.author.username}
+              </span>
+            </div>
+          )}
+          <div
+            style={{
+              marginTop: 'auto',
+              paddingTop: 3,
+              borderTop: '1px solid var(--glass-border)',
+            }}
+          >
+            <StatRow topic={topic} size={11.5} gap={14} />
+          </div>
+        </div>
+      </button>
+    )
+  }
+
+  // ── List (EroScripts-style wide row) ────────────────────────────────────────
+  if (density === 'list') {
+    return (
+      <button
+        {...liquid}
+        onClick={() => navigateTo('detail', { topicId: topic.id })}
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
+        className="glass glass-sheen"
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          width: '100%',
+          textAlign: 'left',
+          padding: 0,
+          cursor: 'pointer',
+          borderRadius: 16,
+          overflow: 'hidden',
+          transform: hover ? 'translateY(-2px)' : 'none',
+          borderColor: hover ? 'var(--glass-border-bright)' : 'var(--glass-border)',
+          boxShadow: hover ? 'var(--shadow-lg)' : 'var(--glass-shadow)',
+          transition: 'transform var(--t), border-color var(--t), box-shadow var(--t)',
+        }}
+      >
+        {/* Thumbnail */}
+        <div
+          style={{
+            width: 220,
+            flexShrink: 0,
+            position: 'relative',
+            overflow: 'hidden',
+            background: `linear-gradient(135deg, hsl(${hue},45%,22%), hsl(${(hue + 50) % 360},40%,14%))`,
+          }}
+        >
+          {topic.thumbnail && (
+            <img
+              src={topic.thumbnail}
+              alt=""
+              loading="lazy"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block',
+                transform: hover ? 'scale(1.04)' : 'scale(1)',
+                transition: 'transform var(--t-slow)',
+              }}
+            />
+          )}
+        </div>
+
+        {/* Content */}
+        <div
+          style={{
+            flex: 1,
+            minWidth: 0,
+            padding: '16px 20px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 10,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 15,
+              fontWeight: 700,
+              lineHeight: 1.4,
+              color: 'var(--text)',
+              letterSpacing: '-0.01em',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+            }}
+          >
+            {topic.title}
+          </div>
+
+          {tags.length > 0 && (
+            <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+              {tags.slice(0, 4).map(label => (
+                <TagPill key={label} label={label} />
+              ))}
+            </div>
+          )}
+
+          <div
+            style={{
+              marginTop: 'auto',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 12,
+            }}
+          >
+            {topic.author && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                {topic.author.avatar && (
+                  <img
+                    src={topic.author.avatar}
+                    alt=""
+                    referrerPolicy="no-referrer"
+                    style={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: '50%',
+                      objectFit: 'cover',
+                      border: '1px solid var(--glass-border)',
+                    }}
+                  />
+                )}
+                <span
+                  style={{
+                    fontSize: 12,
+                    color: 'var(--text-muted)',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {topic.author.username}
+                </span>
+              </div>
+            )}
+            <StatRow topic={topic} size={12} gap={12} />
+          </div>
+        </div>
+      </button>
+    )
+  }
+
+  // ── Compact (small thumbnail + tight row) ───────────────────────────────────
+  return (
+    <button
+      {...liquid}
+      onClick={() => navigateTo('detail', { topicId: topic.id })}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      className="glass glass-sheen"
+      style={{
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        width: '100%',
+        textAlign: 'left',
+        padding: 0,
+        cursor: 'pointer',
+        borderRadius: 12,
+        overflow: 'hidden',
+        transform: hover ? 'translateY(-1px)' : 'none',
+        borderColor: hover ? 'var(--glass-border-bright)' : 'var(--glass-border)',
+        boxShadow: hover ? 'var(--shadow-lg)' : 'none',
+        transition: 'transform var(--t), border-color var(--t), box-shadow var(--t)',
+      }}
+    >
+      {/* Small thumbnail */}
+      <div
+        style={{
+          width: 96,
+          height: 64,
+          flexShrink: 0,
+          position: 'relative',
+          overflow: 'hidden',
+          background: `linear-gradient(135deg, hsl(${hue},45%,22%), hsl(${(hue + 50) % 360},40%,14%))`,
+        }}
+      >
+        {topic.thumbnail && (
+          <img
+            src={topic.thumbnail}
+            alt=""
+            loading="lazy"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              display: 'block',
+              transform: hover ? 'scale(1.06)' : 'scale(1)',
+              transition: 'transform var(--t-slow)',
+            }}
+          />
         )}
       </div>
 
+      {/* Content */}
       <div
         style={{
-          padding: '14px 15px 15px',
           flex: 1,
+          minWidth: 0,
+          padding: '0 14px',
           display: 'flex',
           flexDirection: 'column',
-          gap: 11,
+          gap: 5,
         }}
       >
-        <div
+        <span
           style={{
-            fontSize: 14.5,
+            fontSize: 13,
             fontWeight: 700,
-            lineHeight: 1.4,
             color: 'var(--text)',
             letterSpacing: '-0.01em',
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
             overflow: 'hidden',
-            minHeight: 40,
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
           }}
         >
           {topic.title}
+        </span>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          {tags.slice(0, 2).map(label => (
+            <TagPill key={label} label={label} />
+          ))}
         </div>
-        {topic.author && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            {topic.author.avatar && (
-              <img
-                src={topic.author.avatar}
-                alt=""
-                referrerPolicy="no-referrer"
-                style={{
-                  width: 22,
-                  height: 22,
-                  borderRadius: '50%',
-                  objectFit: 'cover',
-                  border: '1px solid var(--glass-border)',
-                }}
-              />
-            )}
-            <span
-              style={{
-                fontSize: 12,
-                color: 'var(--text-muted)',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {topic.author.username}
-            </span>
-          </div>
-        )}
-        <div
-          style={{
-            display: 'flex',
-            gap: 14,
-            fontSize: 11.5,
-            color: 'var(--text-faint)',
-            marginTop: 'auto',
-            paddingTop: 3,
-            borderTop: '1px solid var(--glass-border)',
-          }}
-        >
-          {topic.views > 0 && (
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-              <Icon name="eye" size={13} />
-              <span className="num">{topic.views.toLocaleString()}</span>
-            </span>
-          )}
-          {topic.postsCount > 0 && (
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-              <Icon name="chat" size={13} />
-              <span className="num">{topic.postsCount}</span>
-            </span>
-          )}
-          {topic.likeCount > 0 && (
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-              <Icon name="heart" size={13} />
-              <span className="num">{topic.likeCount}</span>
-            </span>
-          )}
-        </div>
+      </div>
+
+      {/* Stats */}
+      <div style={{ padding: '0 14px 0 0', flexShrink: 0 }}>
+        <StatRow topic={topic} size={11.5} gap={10} />
       </div>
     </button>
   )
 }
 
-function CardSkeleton() {
+function CardSkeleton({ density }) {
+  if (density === 'list') {
+    return (
+      <div
+        className="glass"
+        style={{ borderRadius: 16, overflow: 'hidden', display: 'flex', height: 110 }}
+      >
+        <Skeleton width={220} height="100%" radius={0} style={{ flexShrink: 0 }} />
+        <div
+          style={{
+            flex: 1,
+            padding: '16px 20px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 10,
+          }}
+        >
+          <Skeleton height={15} />
+          <Skeleton height={15} width="70%" />
+          <Skeleton height={12} width="45%" />
+          <Skeleton height={12} width="30%" style={{ marginTop: 'auto' }} />
+        </div>
+      </div>
+    )
+  }
+  if (density === 'compact') {
+    return (
+      <div
+        className="glass"
+        style={{ borderRadius: 12, overflow: 'hidden', display: 'flex', height: 64 }}
+      >
+        <Skeleton width={96} height={64} radius={0} style={{ flexShrink: 0 }} />
+        <div
+          style={{
+            flex: 1,
+            padding: '0 14px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            gap: 7,
+          }}
+        >
+          <Skeleton height={13} width="75%" />
+          <Skeleton height={11} width="40%" />
+        </div>
+        <div
+          style={{
+            padding: '0 14px 0 0',
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          <Skeleton height={11} width={80} />
+        </div>
+      </div>
+    )
+  }
   return (
     <div className="glass" style={{ borderRadius: 20, overflow: 'hidden' }}>
       <Skeleton height={132} radius={0} />
@@ -390,6 +647,7 @@ function EmptyState({ icon, title, sub }) {
 }
 
 export default function TopicsView({ category, navigateTo }) {
+  const { density } = useTheme()
   const [topics, setTopics] = useState([])
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
@@ -400,6 +658,7 @@ export default function TopicsView({ category, navigateTo }) {
   const [apiQuery, setApiQuery] = useState('') // only set on Enter
   const [searchResults, setSearchResults] = useState(null)
   const [searchLoading, setSearchLoading] = useState(false)
+  const [fetchError, setFetchError] = useState(null)
   const gridRef = useRef(null)
   const scrollRef = useRef(null)
   const sentinelRef = useRef(null)
@@ -446,6 +705,7 @@ export default function TopicsView({ category, navigateTo }) {
     async (p, reset, sort) => {
       reset ? setLoading(true) : setLoadingMore(true)
       try {
+        setFetchError(null)
         const key = `${sort}:${p}`
         const cached = prefetchCache.current[key]
         const data = cached && cached !== 'pending' ? cached : await doFetch(p, sort)
@@ -457,10 +717,19 @@ export default function TopicsView({ category, navigateTo }) {
         setHasMore(more)
         setPage(p)
 
+        // Preload current-page thumbnails into browser cache
+        next.forEach(t => {
+          if (t.thumbnail) {
+            const img = new Image()
+            img.src = t.thumbnail
+          }
+        })
+
         // Kick off next-page prefetch immediately
         if (more) prefetch(p + 1, sort)
       } catch (e) {
         console.error('Failed to load topics:', e)
+        setFetchError(e.message || 'Failed to load scripts')
       } finally {
         setLoading(false)
         setLoadingMore(false)
@@ -579,15 +848,10 @@ export default function TopicsView({ category, navigateTo }) {
   }, [topics.length, loading])
 
   const title = category === 'paid' ? 'Paid Scripts' : 'Free Scripts'
-  const eyebrow = category === 'paid' ? 'Premium library' : 'Community library'
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      <ViewHeader
-        eyebrow={eyebrow}
-        title={title}
-        right={<Segmented tabs={TABS} value={tab} onChange={setTab} />}
-      >
+      <ViewHeader title={title} right={<Segmented tabs={TABS} value={tab} onChange={setTab} />}>
         <div style={{ marginTop: 18, position: 'relative' }}>
           <span
             style={{
@@ -612,7 +876,7 @@ export default function TopicsView({ category, navigateTo }) {
                 setSearchResults(null)
               }
             }}
-            placeholder="Filter… press ↵ to search all · use -tag to exclude"
+            placeholder="Filter or search…"
             className="glass"
             style={{
               width: '100%',
@@ -627,6 +891,52 @@ export default function TopicsView({ category, navigateTo }) {
             onFocus={e => (e.target.style.borderColor = 'var(--accent)')}
             onBlur={e => (e.target.style.borderColor = 'var(--glass-border)')}
           />
+          {(cleanQuery || searchResults) && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                marginTop: 7,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  padding: '2px 8px',
+                  borderRadius: 99,
+                  background: searchResults ? 'var(--accent-soft)' : 'var(--glass-active)',
+                  border: `1px solid ${searchResults ? 'rgba(255,77,121,0.3)' : 'var(--glass-border)'}`,
+                  color: searchResults ? 'var(--accent-2)' : 'var(--text-muted)',
+                  letterSpacing: '0.02em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                {searchResults ? 'API search' : 'Local filter · ↵ for full search'}
+              </span>
+              {searchResults && (
+                <button
+                  onClick={() => {
+                    setSearch('')
+                    setApiQuery('')
+                    setSearchResults(null)
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--text-faint)',
+                    cursor: 'pointer',
+                    fontSize: 11,
+                    fontFamily: 'inherit',
+                    padding: 0,
+                  }}
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+          )}
           {negTags.length > 0 && (
             <div
               style={{
@@ -644,42 +954,15 @@ export default function TopicsView({ category, navigateTo }) {
                     fontWeight: 700,
                     padding: '3px 9px',
                     borderRadius: 99,
-                    background: 'rgba(239,68,68,0.15)',
-                    border: '1px solid rgba(239,68,68,0.4)',
-                    color: '#ef4444',
+                    background: 'rgba(255,93,108,0.15)',
+                    border: '1px solid rgba(255,93,108,0.4)',
+                    color: 'var(--red)',
                   }}
                 >
                   –{tag}
                 </span>
               ))}
             </div>
-          )}
-          {topics.length > 0 && (
-            <span
-              style={{
-                position: 'absolute',
-                right: 16,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                fontSize: 12,
-                color: 'var(--text-faint)',
-                pointerEvents: 'none',
-              }}
-            >
-              {searchLoading ? (
-                'Searching…'
-              ) : cleanQuery && !searchResults ? (
-                `${filtered.length} local · ↵ for all`
-              ) : searchResults ? (
-                <>
-                  <span className="num">{filtered.length}</span> results
-                </>
-              ) : (
-                <>
-                  <span className="num">{topics.length}</span> loaded
-                </>
-              )}
-            </span>
           )}
         </div>
       </ViewHeader>
@@ -689,15 +972,42 @@ export default function TopicsView({ category, navigateTo }) {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(248px, 1fr))',
-              gap: 18,
+              gridTemplateColumns:
+                density === 'mosaic' ? 'repeat(auto-fill, minmax(248px, 1fr))' : '1fr',
+              gap: density === 'mosaic' ? 18 : density === 'list' ? 6 : 3,
               paddingTop: 24,
             }}
           >
-            {Array.from({ length: 9 }).map((_, i) => (
-              <CardSkeleton key={i} />
+            {Array.from({ length: density === 'mosaic' ? 9 : 12 }).map((_, i) => (
+              <CardSkeleton key={i} density={density} />
             ))}
           </div>
+        ) : fetchError ? (
+          <EmptyState
+            icon="search"
+            title="Couldn't load scripts"
+            sub={
+              <span>
+                {fetchError}{' '}
+                <button
+                  onClick={() => fetchTopics(0, true, tab)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--accent-2)',
+                    cursor: 'pointer',
+                    textDecoration: 'underline',
+                    textUnderlineOffset: 3,
+                    fontSize: 'inherit',
+                    fontFamily: 'inherit',
+                    padding: 0,
+                  }}
+                >
+                  Try again
+                </button>
+              </span>
+            }
+          />
         ) : filtered.length === 0 && !searchLoading ? (
           <EmptyState
             icon="search"
@@ -707,10 +1017,12 @@ export default function TopicsView({ category, navigateTo }) {
         ) : (
           <div
             ref={gridRef}
+            data-density={density}
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(248px, 1fr))',
-              gap: 18,
+              gridTemplateColumns:
+                density === 'mosaic' ? 'repeat(auto-fill, minmax(248px, 1fr))' : '1fr',
+              gap: density === 'mosaic' ? 18 : density === 'list' ? 6 : 3,
               paddingTop: 24,
             }}
           >

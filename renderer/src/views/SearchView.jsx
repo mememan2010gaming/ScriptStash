@@ -270,9 +270,6 @@ export default function SearchView({ navigateTo }) {
               ref={inputRef}
               value={q}
               onChange={handleChange}
-              onFocus={() => {
-                if (suggestions.length) setShowDropdown(true)
-              }}
               placeholder="Search scripts, authors, tags…"
               className="glass"
               style={{
@@ -470,7 +467,7 @@ export default function SearchView({ navigateTo }) {
                 className="display"
                 style={{ fontSize: 19, fontWeight: 700, color: 'var(--text)' }}
               >
-                No results for "{q}"
+                No results for &quot;{q}&quot;
               </div>
               <div style={{ fontSize: 13.5, color: 'var(--text-faint)', marginTop: 5 }}>
                 Try a broader term.

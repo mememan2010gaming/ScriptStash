@@ -13,11 +13,10 @@ import NotificationsView from '../views/NotificationsView'
 import LibraryView from '../views/LibraryView'
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-function ViewContent(props) {
-  const { currentView, currentCategory, selectedTopicId, searchQuery, navigateTo, goBack } = props
+// Transient views — mount/unmount normally (no scroll state to preserve)
+function TransientContent(props) {
+  const { currentView, selectedTopicId, searchQuery, navigateTo, goBack } = props
   switch (currentView) {
-    case 'topics':
-      return <TopicsView key={currentCategory} category={currentCategory} navigateTo={navigateTo} />
     case 'player':
       return (
         <PlayerView topic={props.playerTopic} localFile={props.playerLocalFile} goBack={goBack} />
@@ -40,7 +39,7 @@ function ViewContent(props) {
         />
       )
     default:
-      return <TopicsView category="free" navigateTo={navigateTo} />
+      return null
   }
 }
 
@@ -92,7 +91,31 @@ export default function AppShell(props) {
                 minWidth: 0,
               }}
             >
-              <ViewContent {...props} />
+              {/* Persistent topic views — kept mounted so loaded pages + scroll survive navigation */}
+              {['free', 'paid'].map(cat => (
+                <div
+                  key={cat}
+                  style={{
+                    display:
+                      props.currentView === 'topics' && props.currentCategory === cat
+                        ? 'flex'
+                        : 'none',
+                    flex: 1,
+                    flexDirection: 'column',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <TopicsView category={cat} navigateTo={props.navigateTo} />
+                </div>
+              ))}
+              {/* Transient views render normally */}
+              {props.currentView !== 'topics' && (
+                <div
+                  style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+                >
+                  <TransientContent {...props} />
+                </div>
+              )}
             </div>
           </main>
         </div>
