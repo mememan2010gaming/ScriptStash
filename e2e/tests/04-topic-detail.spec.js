@@ -6,19 +6,15 @@ const { MOCK_TOPICS, MOCK_TOPIC_DETAIL } = require('../fixtures/mock-data');
 test.describe('Topic detail view', () => {
   // Navigate into the first topic card before each test
   test.beforeEach(async ({ page }) => {
-    // Go to topics first (labelled "Free Scripts" in the UI)
     const nav = page.locator('nav').first();
     await nav.getByText(/free scripts/i).first().click();
-    await page.waitForTimeout(600);
+    await page.locator('[data-card]').first().waitFor({ state: 'visible', timeout: 10_000 });
 
     const cards = page.locator('[data-card]');
     const count = await cards.count();
-    if (count === 0) {
-      // Nothing to navigate into — individual tests will skip themselves
-      return;
-    }
+    if (count === 0) return;
     await cards.first().locator('button').click();
-    await page.waitForTimeout(700);
+    await page.getByRole('button', { name: /back/i }).waitFor({ state: 'visible', timeout: 10_000 }).catch(() => {});
   });
 
   test('detail view renders without crash', async ({ page }) => {
@@ -34,21 +30,17 @@ test.describe('Topic detail view', () => {
     const back = page.getByRole('button', { name: /back/i });
     if (await back.count() === 0) { test.skip(); return; }
     await back.click();
-    await page.waitForTimeout(500);
-    // Topics list cards should be visible again
     const cards = page.locator('[data-card]');
     await expect(cards.first()).toBeVisible({ timeout: 10_000 });
   });
 
   test('topic title is displayed', async ({ page }) => {
-    // Our mock topic has a recognisable title
     const title = page.getByText(/Amazing PMV Script|PMV|script/i).first();
     await expect(title).toBeVisible({ timeout: 10_000 });
   });
 
   test('post content is rendered', async ({ page }) => {
-    // The mock post cooked HTML includes "great test script"
-    const post = page.getByText(/script|download|watch/i).first();
+    const post = page.getByText(/PMV script for an amazing video/i).first();
     await expect(post).toBeVisible({ timeout: 10_000 });
   });
 
@@ -56,7 +48,6 @@ test.describe('Topic detail view', () => {
     const downloadBtn = page.getByRole('button', { name: /download/i })
       .or(page.locator('[class*="download"]').filter({ hasText: /download/i }));
     const count = await downloadBtn.count();
-    // Either a download button exists or the view rendered cleanly (some layouts show links, not buttons)
     if (count > 0) {
       await expect(downloadBtn.first()).toBeVisible();
     } else {
@@ -72,7 +63,6 @@ test.describe('Topic detail view', () => {
   });
 
   test('tags are displayed in detail view', async ({ page }) => {
-    // Mock topic has tags ['free', 'pmv']
     const tags = page.locator('[class*="tag"], [class*="badge"]')
       .or(page.getByText(/free|pmv|pov/i));
     const count = await tags.count();
@@ -80,14 +70,12 @@ test.describe('Topic detail view', () => {
   });
 
   test('topic stats (views, likes) are shown', async ({ page }) => {
-    // Mock has views: 5000, like_count: 120
-    const stats = page.getByText(/\d{3,}/).filter({ visible: true }).first();
+    // Mock has views: 5000 → formatted as '5k', like_count: 120
+    const stats = page.getByText('5k').or(page.getByText('120')).first();
     await expect(stats).toBeVisible({ timeout: 8_000 });
   });
 
   test('clicking download triggers IPC download call', async ({ page, electronApp }) => {
-    // When a funscript exists, the video Download button calls download-paired.
-    // When no funscript, it calls download-file. Capture both.
     await electronApp.evaluate(({ ipcMain }) => {
       global.__e2eDownloadCalled = false;
       const capture = () => {
@@ -100,11 +88,10 @@ test.describe('Topic detail view', () => {
       ipcMain.handle('download-paired', capture);
     });
 
-    // "Download" button on videos, "Get" button on funscripts
     const downloadBtn = page.getByRole('button', { name: /^(download|get)$/i });
     if (await downloadBtn.count() === 0) { test.skip(); return; }
     await downloadBtn.first().click();
-    await page.waitForTimeout(600);
+    await page.waitForTimeout(100);
 
     const called = await electronApp.evaluate(() => !!global.__e2eDownloadCalled);
     expect(called).toBe(true);

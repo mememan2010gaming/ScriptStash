@@ -134,7 +134,7 @@ async function launchApp() {
   //   • apply --headless and --disable-gpu Chromium switches for display-free runs
   const appInstance = await electron.launch({
     args: [APP_ROOT, '--test-mode'],
-    timeout: 30_000,
+    timeout: 15_000,
   });
 
   // Wait for the first window to fully load before calling evaluate().
@@ -150,7 +150,7 @@ async function launchApp() {
   await page.waitForLoadState('domcontentloaded');
 
   // Wait for the React root to be ready
-  await page.waitForSelector('#root', { timeout: 20_000 });
+  await page.waitForSelector('#root', { timeout: 10_000 });
 
   return { electronApp: appInstance, page };
 }

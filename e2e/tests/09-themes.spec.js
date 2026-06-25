@@ -5,10 +5,10 @@ const { test, expect } = require('../fixtures/electron.fixture');
 test.describe('Themes & appearance', () => {
   async function goToAppearance(page) {
     await page.getByRole('button', { name: 'Settings' }).first().click();
-    await page.waitForTimeout(400);
     const appearanceBtn = page.locator('main').getByRole('button', { name: /appearance/i }).first();
-    if (await appearanceBtn.count() > 0) await appearanceBtn.click();
-    await page.waitForTimeout(400);
+    const appeared = await appearanceBtn.waitFor({ state: 'visible', timeout: 5_000 }).then(() => true).catch(() => false);
+    if (appeared) await appearanceBtn.click();
+    await expect(page.locator('[class*="glass-hover"]').filter({ hasText: /[a-z]{3,}/i }).first()).toBeVisible({ timeout: 8_000 });
   }
 
   // Theme card buttons use class "glass glass-hover" with visible text (theme name + description).
@@ -53,7 +53,7 @@ test.describe('Themes & appearance', () => {
     if (await cards.count() < 2) { test.skip(); return; }
 
     await cards.nth(1).click();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(300);
 
     savedTheme = await electronApp.evaluate(() => global.__themeSettings);
     expect(savedTheme).not.toBeNull();
@@ -65,9 +65,8 @@ test.describe('Themes & appearance', () => {
     if (await cards.count() === 0) { test.skip(); return; }
 
     await cards.first().click();
-    await page.waitForTimeout(400);
+    await page.waitForTimeout(200);
 
-    // App root should still be visible — selection indicator may be CSS-only (border/shadow change)
     await expect(page.locator('#root')).toBeVisible();
   });
 
@@ -81,7 +80,7 @@ test.describe('Themes & appearance', () => {
     );
 
     await cards.nth(1).click();
-    await page.waitForTimeout(400);
+    await page.waitForTimeout(300);
 
     const after = await page.evaluate(() =>
       getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()
@@ -94,7 +93,6 @@ test.describe('Themes & appearance', () => {
 
   test('theme applies to sidebar background', async ({ page }) => {
     await goToAppearance(page);
-    // Sidebar is <aside> (role=complementary)
     const sidebar = page.locator('aside').first();
     await expect(sidebar).toBeVisible();
     const bg = await sidebar.evaluate(el => getComputedStyle(el).background || getComputedStyle(el).backgroundColor);
@@ -107,14 +105,17 @@ test.describe('Themes & appearance', () => {
     if (await cards.count() < 2) { test.skip(); return; }
 
     await cards.nth(1).click();
-    await page.waitForTimeout(400);
+    await page.waitForFunction(() => localStorage.getItem('ss_theme') !== null, { timeout: 3_000 }).catch(() => {});
+    const themeAfterClick = await page.evaluate(() => localStorage.getItem('ss_theme'));
+    expect(themeAfterClick).not.toBeNull();
 
-    // Navigate away and back
     await page.locator('nav').first().getByText(/downloads/i).first().click();
-    await page.waitForTimeout(300);
-    await page.getByRole('button', { name: 'Settings' }).first().click();
-    await page.waitForTimeout(300);
+    await expect(page.getByText(/no active downloads|nothing here|queue is empty/i).first()).toBeVisible({ timeout: 8_000 });
 
-    await expect(page.locator('#root')).toBeVisible();
+    await page.getByRole('button', { name: 'Settings' }).first().click();
+    await expect(page.locator('main').first()).toBeVisible({ timeout: 5_000 });
+
+    const themeAfterNav = await page.evaluate(() => localStorage.getItem('ss_theme'));
+    expect(themeAfterNav).toBe(themeAfterClick);
   });
 });

@@ -8,7 +8,7 @@ module.exports = defineConfig({
   // sequentially (fullyParallel: false) to share the worker-scoped app.
   // Multiple workers run different spec files in parallel for speed.
   fullyParallel: false,
-  workers: 3,
+  workers: 4,
   retries: 0,
   reporter: [
     ['list'],
