@@ -32,8 +32,10 @@ function createMainWindow() {
   }
 
   mainWindow.once('ready-to-show', () => {
-    mainWindow.maximize()
-    mainWindow.show()
+    if (!process.argv.includes('--test-mode')) {
+      mainWindow.maximize()
+      mainWindow.show()
+    }
   })
 
   mainWindow.on('closed', () => {

@@ -30,13 +30,6 @@ if (require('electron-squirrel-startup')) {
 
 const isTestMode = process.argv.includes('--test-mode')
 
-// In test mode apply headless Chromium switches before the app is ready.
-// This lets the e2e suite run without a display (CI / local headless runs).
-if (isTestMode) {
-  app.commandLine.appendSwitch('headless')
-  app.commandLine.appendSwitch('disable-gpu')
-}
-
 // Keep a global reference of the window object
 
 let mainWindow = null
