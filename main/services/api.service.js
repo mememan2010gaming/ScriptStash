@@ -514,6 +514,7 @@ class ApiService {
       'xnxx',
       'xhamster',
       'rule34video',
+      'rule34.xxx',
       'redgifs.com',
       'thisvid.com',
       'erome.com',
@@ -566,6 +567,7 @@ class ApiService {
       'xnxx.com',
       'xhamster.com',
       'rule34video',
+      'rule34.xxx',
       'spankbang.com',
       'redgifs.com',
       'erome.com',
@@ -605,6 +607,7 @@ class ApiService {
     if (lowerUrl.includes('xnxx')) return 'XNXX'
     if (lowerUrl.includes('xhamster')) return 'xHamster'
     if (lowerUrl.includes('rule34video')) return 'Rule34Video'
+    if (lowerUrl.includes('rule34.xxx')) return 'Rule34'
     if (lowerUrl.includes('redgifs.com')) return 'RedGIFs'
     if (lowerUrl.includes('erome.com')) return 'Erome'
     if (lowerUrl.includes('coomer.party')) return 'Coomer'

@@ -17,6 +17,22 @@ function fmtNum(n) {
   return String(n)
 }
 
+function fmtRelDate(iso) {
+  if (!iso) return null
+  const diff = Date.now() - new Date(iso).getTime()
+  const s = Math.floor(diff / 1000)
+  if (s < 60) return 'just now'
+  const m = Math.floor(s / 60)
+  if (m < 60) return `${m}m ago`
+  const h = Math.floor(m / 60)
+  if (h < 24) return `${h}h ago`
+  const d = Math.floor(h / 24)
+  if (d < 30) return `${d}d ago`
+  const mo = Math.floor(d / 30)
+  if (mo < 12) return `${mo}mo ago`
+  return `${Math.floor(mo / 12)}y ago`
+}
+
 const TABS = [
   { id: 'latest', label: 'Latest' },
   { id: 'top', label: 'Top' },
@@ -254,6 +270,22 @@ function TopicCard({ topic, navigateTo }) {
               </span>
             </div>
           )}
+          {(topic.createdAt || topic.lastPostedAt) && (
+            <div style={{ display: 'flex', gap: 10, fontSize: 11, color: 'var(--text-faint)' }}>
+              {topic.createdAt && (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                  <Icon name="calendar" size={11} />
+                  {fmtRelDate(topic.createdAt)}
+                </span>
+              )}
+              {topic.lastPostedAt && topic.lastPostedAt !== topic.createdAt && (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                  <Icon name="clock" size={11} />
+                  {fmtRelDate(topic.lastPostedAt)}
+                </span>
+              )}
+            </div>
+          )}
           <div
             style={{
               marginTop: 'auto',
@@ -358,41 +390,65 @@ function TopicCard({ topic, navigateTo }) {
             style={{
               marginTop: 'auto',
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 12,
+              flexDirection: 'column',
+              gap: 6,
             }}
           >
-            {topic.author && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                {topic.author.avatar && (
-                  <img
-                    src={topic.author.avatar}
-                    alt=""
-                    referrerPolicy="no-referrer"
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 12,
+              }}
+            >
+              {topic.author && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {topic.author.avatar && (
+                    <img
+                      src={topic.author.avatar}
+                      alt=""
+                      referrerPolicy="no-referrer"
+                      style={{
+                        width: 20,
+                        height: 20,
+                        borderRadius: '50%',
+                        objectFit: 'cover',
+                        border: '1px solid var(--glass-border)',
+                      }}
+                    />
+                  )}
+                  <span
                     style={{
-                      width: 20,
-                      height: 20,
-                      borderRadius: '50%',
-                      objectFit: 'cover',
-                      border: '1px solid var(--glass-border)',
+                      fontSize: 12,
+                      color: 'var(--text-muted)',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
                     }}
-                  />
+                  >
+                    {topic.author.username}
+                  </span>
+                </div>
+              )}
+              <StatRow topic={topic} size={12} gap={12} />
+            </div>
+            {(topic.createdAt || topic.lastPostedAt) && (
+              <div style={{ display: 'flex', gap: 10, fontSize: 11, color: 'var(--text-faint)' }}>
+                {topic.createdAt && (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                    <Icon name="calendar" size={11} />
+                    {fmtRelDate(topic.createdAt)}
+                  </span>
                 )}
-                <span
-                  style={{
-                    fontSize: 12,
-                    color: 'var(--text-muted)',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {topic.author.username}
-                </span>
+                {topic.lastPostedAt && topic.lastPostedAt !== topic.createdAt && (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                    <Icon name="clock" size={11} />
+                    {fmtRelDate(topic.lastPostedAt)}
+                  </span>
+                )}
               </div>
             )}
-            <StatRow topic={topic} size={12} gap={12} />
           </div>
         </div>
       </button>
@@ -481,6 +537,30 @@ function TopicCard({ topic, navigateTo }) {
             <TagPill key={label} label={label} />
           ))}
         </div>
+        {(topic.createdAt || topic.lastPostedAt) && (
+          <div
+            style={{
+              display: 'flex',
+              gap: 8,
+              fontSize: 10.5,
+              color: 'var(--text-faint)',
+              flexWrap: 'wrap',
+            }}
+          >
+            {topic.createdAt && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                <Icon name="calendar" size={10.5} />
+                {fmtRelDate(topic.createdAt)}
+              </span>
+            )}
+            {topic.lastPostedAt && topic.lastPostedAt !== topic.createdAt && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                <Icon name="clock" size={10.5} />
+                {fmtRelDate(topic.lastPostedAt)}
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Stats */}
