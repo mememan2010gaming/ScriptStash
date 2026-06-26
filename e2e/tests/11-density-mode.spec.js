@@ -2,6 +2,8 @@
 
 const { test, expect } = require('../fixtures/electron.fixture')
 
+test.describe.configure({ mode: 'serial' })
+
 test.describe('Density mode', () => {
   async function goToAppearance(page) {
     await page.getByRole('button', { name: 'Settings' }).first().click()
