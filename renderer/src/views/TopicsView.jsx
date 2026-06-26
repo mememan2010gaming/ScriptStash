@@ -738,6 +738,8 @@ export default function TopicsView({ category, navigateTo }) {
   const [apiQuery, setApiQuery] = useState('') // only set on Enter
   const [searchResults, setSearchResults] = useState(null)
   const [searchLoading, setSearchLoading] = useState(false)
+  const [searchPage, setSearchPage] = useState(0)
+  const [searchHasMore, setSearchHasMore] = useState(false)
   const [fetchError, setFetchError] = useState(null)
   const gridRef = useRef(null)
   const scrollRef = useRef(null)
@@ -873,27 +875,64 @@ export default function TopicsView({ category, navigateTo }) {
   useEffect(() => {
     if (!apiQuery) return
     setSearchLoading(true)
+    setSearchPage(0)
+    setSearchHasMore(false)
     window.electronAPI
       ?.searchTopics?.(apiQuery, 0)
       .then(res => {
-        if (res?.success) setSearchResults(res.data?.topics || [])
+        if (res?.success) {
+          setSearchResults(res.data?.topics || [])
+          setSearchHasMore(res.data?.hasMore ?? false)
+        }
       })
       .catch(() => {})
       .finally(() => setSearchLoading(false))
   }, [apiQuery])
 
+  const fetchMoreSearch = useCallback(async () => {
+    if (!apiQuery || loadingMore) return
+    setLoadingMore(true)
+    const nextPage = searchPage + 1
+    try {
+      const res = await window.electronAPI?.searchTopics?.(apiQuery, nextPage)
+      if (res?.success) {
+        setSearchResults(prev => [...(prev || []), ...(res.data?.topics || [])])
+        setSearchHasMore(res.data?.hasMore ?? false)
+        setSearchPage(nextPage)
+      }
+    } catch {
+    } finally {
+      setLoadingMore(false)
+    }
+  }, [apiQuery, searchPage, loadingMore])
+
   useEffect(() => {
     if (!sentinelRef.current) return
     const obs = new IntersectionObserver(
       entries => {
-        if (entries[0].isIntersecting && hasMore && !loading && !loadingMore && !search.trim())
-          fetchTopics(page + 1, false, tab)
+        if (!entries[0].isIntersecting) return
+        if (search.trim()) {
+          if (searchHasMore && !loadingMore && !searchLoading) fetchMoreSearch()
+        } else {
+          if (hasMore && !loading && !loadingMore) fetchTopics(page + 1, false, tab)
+        }
       },
       { rootMargin: '400px' }
     )
     obs.observe(sentinelRef.current)
     return () => obs.disconnect()
-  }, [hasMore, loading, loadingMore, page, tab, fetchTopics, search])
+  }, [
+    hasMore,
+    loading,
+    loadingMore,
+    page,
+    tab,
+    fetchTopics,
+    search,
+    searchHasMore,
+    searchLoading,
+    fetchMoreSearch,
+  ])
 
   // Instant local filter against loaded topics (title match) while no API results yet
   const localFiltered = cleanQuery
