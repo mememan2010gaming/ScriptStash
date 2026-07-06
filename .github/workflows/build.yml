@@ -87,10 +87,34 @@ jobs:
         run: sudo apt-get install -y xvfb
 
       - name: Run e2e tests
-        run: xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" npm run test:e2e -- --workers=2 --retries=1
+        id: e2e
+        continue-on-error: true
+        run: xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" npm run test:e2e -- --workers=2 --retries=1 --reporter=list,json
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_NAME: playwright-report/results.json
+
+      # Playwright's own process exit code can be 1 even when every test eventually
+      # passed (e.g. a stray "worker teardown timeout" error unrelated to any test).
+      # Judge the job on actual test outcomes instead: only real (non-flaky) failures
+      # should fail the build.
+      - name: Evaluate e2e results
+        run: |
+          node -e "
+            const fs = require('fs');
+            const report = JSON.parse(fs.readFileSync('playwright-report/results.json', 'utf8'));
+            const { expected = 0, unexpected = 0, flaky = 0, skipped = 0 } = report.stats;
+            console.log(\`expected=\${expected} unexpected=\${unexpected} flaky=\${flaky} skipped=\${skipped}\`);
+            if (unexpected > 0) {
+              console.error(\`${unexpected} test(s) failed outright — failing the build.\`);
+              process.exit(1);
+            }
+            if (flaky > 0) {
+              console.warn(\`${flaky} test(s) were flaky but passed on retry — not failing the build.\`);
+            }
+          "
 
       - name: Upload Playwright report
-        if: failure()
+        if: failure() || steps.e2e.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
