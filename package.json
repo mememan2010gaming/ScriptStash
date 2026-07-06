@@ -84,7 +84,7 @@
   },
   "dependencies": {
     "@distube/ytdl-core": "^4.16.12",
-    "animejs": "^4.4.1",
+    "animejs": "^4.5.0",
     "axios": "^1.13.2",
     "buttplug": "^5.0.1",
     "cheerio": "^1.2.0",
