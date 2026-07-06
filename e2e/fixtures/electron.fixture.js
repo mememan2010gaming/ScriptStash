@@ -158,14 +158,14 @@ async function launchApp() {
   // evaluate() called before domcontentloaded destroys the execution context.
   // firstWindow() defaults to 30s; CI runners under load need more headroom.
   const page = await appInstance.firstWindow({ timeout: 60_000 })
-  await page.waitForLoadState('domcontentloaded')
+  await page.waitForLoadState('domcontentloaded', { timeout: 60_000 })
 
   // Renderer context is stable — safe to inject mocks now
   await injectMocks(appInstance, MOCK_IPC)
 
   // Reload so mock handlers service all data fetches from scratch
   await page.reload()
-  await page.waitForLoadState('domcontentloaded')
+  await page.waitForLoadState('domcontentloaded', { timeout: 60_000 })
 
   // Wait for the React root to be ready
   await page.waitForSelector('#root', { timeout: 10_000 })
@@ -186,7 +186,11 @@ const test = base.extend({
       await use(electronApp)
       await electronApp.close()
     },
-    { scope: 'worker' },
+    // Worker-scoped fixture setup (Electron launch + double waitForLoadState + mock
+    // injection) is otherwise charged against the first test's global timeout
+    // (45s in playwright.config.js), which CI runners under load can exceed.
+    // Give it its own budget instead.
+    { scope: 'worker', timeout: 90_000 },
   ],
 
   page: [
